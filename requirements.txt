@@ -1,0 +1,3 @@
+No third-party Python dependencies are required.
+
+serve.py uses only Python’s standard library.
