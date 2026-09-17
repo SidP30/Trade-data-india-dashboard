@@ -1,0 +1,2508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>India Trade Intelligence</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fraunces:opsz,wght@9..144,300;9..144,600&display=swap');
+
+:root {
+  --ink:#0d1117;--ink-mid:#3a4154;--ink-light:#7a8499;
+  --page:#f4f5f9;--surface:#ffffff;--border:#e1e4ef;
+  --exp:#166534;--exp-mid:#22a366;--exp-lt:#dcfce7;
+  --imp:#7f1d1d;--imp-mid:#dc2626;--imp-lt:#fee2e2;
+  --acc:#1d4ed8;--acc-lt:#eff6ff;
+  --hs2:#7c3aed;--hs2-lt:#f5f3ff;
+  --hs6:#0369a1;--hs6-lt:#e0f2fe;
+  --sh:0 1px 2px rgba(13,17,23,.05),0 3px 10px rgba(13,17,23,.04);
+  --r:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--page);color:var(--ink);font-size:14px;line-height:1.5;min-height:100vh}
+
+/* TOPBAR */
+.topbar{background:var(--ink);height:56px;padding:0 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-name{font-family:'Fraunces',serif;font-weight:600;font-size:17px;color:white;letter-spacing:-.3px}
+.brand-sub{font-size:10px;color:rgba(255,255,255,.4);letter-spacing:.6px;text-transform:uppercase;display:block;margin-top:-2px}
+.hs-pill{display:flex;background:rgba(255,255,255,.1);border-radius:20px;padding:3px;gap:2px}
+.hs-btn{padding:4px 16px;border-radius:16px;font-size:12px;font-weight:600;cursor:pointer;color:rgba(255,255,255,.55);border:none;background:transparent;font-family:'Inter',sans-serif;transition:all .15s}
+.hs-btn.on-hs2{background:var(--hs2);color:white}
+.hs-btn.on-hs6{background:var(--hs6);color:white}
+.hs-btn:hover:not(.on-hs2):not(.on-hs6){color:white}
+
+/* CTRLBAR */
+.ctrlbar{background:var(--surface);border-bottom:1px solid var(--border);padding:8px 28px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.cg{display:flex;align-items:center;gap:7px}
+.clbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--ink-light);white-space:nowrap}
+.csep{width:1px;height:22px;background:var(--border)}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{padding:3px 11px;border-radius:20px;border:1px solid var(--border);font-size:12px;cursor:pointer;transition:all .14s;background:var(--page);color:var(--ink-mid);font-weight:500}
+.chip.on{background:var(--ink);color:white;border-color:var(--ink)}
+.chip:hover:not(.on){border-color:var(--ink);color:var(--ink)}
+.vbtns{display:flex;gap:4px}
+.vbtn{padding:3px 11px;border-radius:20px;border:1px solid var(--border);font-size:12px;cursor:pointer;background:var(--page);color:var(--ink-mid);font-weight:500;transition:all .14s}
+.vbtn.on{background:var(--acc);color:white;border-color:var(--acc)}
+.vbtn:hover:not(.on){border-color:var(--acc);color:var(--acc)}
+.hs-badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.hs-badge.hs2{background:var(--hs2-lt);color:var(--hs2)}
+.hs-badge.hs6{background:var(--hs6-lt);color:var(--hs6)}
+
+/* MAIN */
+.main{padding:22px 28px 56px;max-width:1440px;margin:0 auto}
+
+/* STATUS */
+.status-screen{background:var(--surface);border:2px dashed var(--border);border-radius:14px;padding:64px 32px;text-align:center}
+.status-screen.loading{border-style:solid;border-color:var(--acc)}
+.status-screen h2{font-family:'Fraunces',serif;font-size:22px;font-weight:600;margin-bottom:10px}
+.status-screen p{color:var(--ink-mid);max-width:480px;margin:0 auto 6px;font-size:14px}
+.spin{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--acc);border-radius:50%;animation:sp .7s linear infinite;margin:0 auto 18px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.file-tags{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:16px}
+.ftag{padding:5px 12px;border-radius:7px;border:1px solid var(--border);font-size:12px;color:var(--ink-mid);background:var(--page)}
+.ftag strong{color:var(--ink)}
+
+/* KPI */
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:15px 17px;box-shadow:var(--sh)}
+.kpi.e{border-left:3px solid var(--exp-mid)}.kpi.i{border-left:3px solid var(--imp-mid)}.kpi.b{border-left:3px solid var(--acc)}
+.kpi-l{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-light);margin-bottom:7px}
+.kpi-v{font-size:23px;font-weight:700;letter-spacing:-.5px;line-height:1}
+.kpi-s{font-size:11px;color:var(--ink-light);margin-top:5px}
+.kpi-periods{font-size:10px;color:var(--ink-light);margin-top:5px;line-height:1.5}
+.kpi-periods-more{color:var(--acc);cursor:pointer;font-weight:600;white-space:nowrap}
+.kpi-periods-more:hover{text-decoration:underline}
+.bdg{display:inline-flex;align-items:center;font-size:11px;font-weight:600;padding:2px 6px;border-radius:4px;white-space:nowrap}
+.bdg.p{background:var(--exp-lt);color:var(--exp)}.bdg.n{background:var(--imp-lt);color:var(--imp)}
+
+/* TABS */
+.tab-row{display:flex;border-bottom:2px solid var(--border);margin-bottom:20px}
+.tab{padding:9px 17px;font-size:13px;font-weight:500;cursor:pointer;color:var(--ink-light);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .14s;white-space:nowrap}
+.tab.on{color:var(--ink);border-bottom-color:var(--ink)}
+.tab:hover:not(.on){color:var(--ink-mid)}
+.tp{display:none}.tp.on{display:block}
+
+/* CARDS */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.g1{display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:14px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:19px 21px;box-shadow:var(--sh)}
+.ch{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;gap:10px;flex-wrap:wrap}
+.ct{font-weight:600;font-size:13px;color:var(--ink)}
+.cs{font-size:11px;color:var(--ink-light);margin-top:2px}
+.cw{position:relative}
+.lgnd{display:flex;gap:10px;flex-wrap:wrap}
+.li{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ink-mid)}
+.lsq{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+
+/* N-COUNT CONTROL */
+.nctl{display:flex;align-items:center;gap:6px}
+.nctl label{font-size:11px;color:var(--ink-light);font-weight:600;white-space:nowrap}
+.nctl input[type=number]{width:52px;padding:3px 7px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:'Inter',sans-serif;color:var(--ink);background:var(--page);text-align:center}
+.nctl input[type=number]:focus{outline:none;border-color:var(--acc)}
+
+/* TABLES */
+.stbl{max-height:400px;overflow-y:auto;overflow-x:auto}
+.tbl{width:100%;border-collapse:collapse;font-size:12px;table-layout:auto}
+.tbl th{text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--ink-light);padding:7px 10px;border-bottom:2px solid var(--border);white-space:normal;overflow:hidden;word-break:break-word;line-height:1.3}
+.tbl td{padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tbody tr:hover td{background:var(--page)}
+.tbl .r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+/* .tbl-auto kept for explicit usage */
+.tbl-auto{table-layout:auto;min-width:100%}
+/* Column width classes applied via colgroup */
+.col-rk{width:28px}
+.col-hs{width:72px}
+.col-val{width:88px}
+.col-yoy{width:80px}
+.col-prev{width:80px}
+.col-grow{width:110px}
+/* Name cell: fixed width, wraps neatly */
+.nm{font-weight:500;white-space:normal;word-break:break-word;line-height:1.35;display:block}
+.nm-sub{font-size:10px;color:var(--ink-light);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* HS code pill */
+.hs-code{font-family:monospace;font-size:10px;color:var(--ink-light);background:var(--page);border:1px solid var(--border);border-radius:4px;padding:1px 5px;display:inline-block;white-space:nowrap;max-width:68px;overflow:hidden;text-overflow:ellipsis}
+
+/* GROWTH BAR */
+.gb{display:flex;flex-direction:column;align-items:flex-start;gap:3px}
+.gb-bg{width:52px;height:5px;background:var(--border);border-radius:3px;overflow:hidden;flex-shrink:0}
+.gb-f{height:100%;border-radius:3px}
+.gb-f.p{background:var(--exp-mid)}.gb-f.n{background:var(--imp-mid)}
+
+/* SEARCH */
+.srch{padding:5px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:'Inter',sans-serif;color:var(--ink);background:var(--page);width:150px}
+.srch:focus{outline:none;border-color:var(--acc)}
+/* FILTER TOGGLE */
+.flt-grp{display:flex;gap:3px;align-items:center}
+.flt-label{font-size:10px;font-weight:700;color:var(--ink-light);text-transform:uppercase;letter-spacing:.4px;margin-right:4px;white-space:nowrap}
+.flt-btn{padding:3px 10px;border:1px solid var(--border);border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;background:var(--page);color:var(--ink-mid);transition:all .12s;white-space:nowrap}
+.flt-btn:hover{border-color:var(--acc);color:var(--acc)}
+.flt-btn.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+/* BALANCE SUMMARY */
+.bsum{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:13px}
+.bc{border-radius:8px;padding:11px 13px}
+.bc .bl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px}
+.bc .bv{font-size:16px;font-weight:700}
+.bc .bs{font-size:11px;margin-top:2px}
+.bc.e{background:var(--exp-lt)}.bc.e .bl{color:var(--exp)}.bc.e .bv{color:var(--exp)}
+.bc.i{background:var(--imp-lt)}.bc.i .bl{color:var(--imp)}.bc.i .bv{color:var(--imp)}
+.bc.sp{background:var(--acc-lt)}.bc.sp .bl{color:var(--acc)}.bc.sp .bv{color:var(--acc)}
+.bc.df{background:var(--imp-lt)}.bc.df .bl{color:var(--imp)}.bc.df .bv{color:var(--imp)}
+
+/* COMPARE CARDS */
+.cmp4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.cc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:13px 15px;display:flex;justify-content:space-between;align-items:flex-end;box-shadow:var(--sh)}
+.cc.e{border-left:3px solid var(--exp-mid)}.cc.i{border-left:3px solid var(--imp-mid)}
+.cc .cl{font-size:10px;color:var(--ink-light);font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px}
+.cc .cv{font-size:17px;font-weight:700}
+
+/* EXPLAINER BOX */
+.explainer{background:var(--acc-lt);border:1px solid #bfdbfe;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:12px;color:var(--ink-mid);line-height:1.6}
+.explainer strong{color:var(--acc);font-weight:600}
+
+/* CHAPTER FILTER */
+.chap-bar{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.cch{padding:3px 10px;border-radius:20px;border:1px solid var(--border);font-size:11px;cursor:pointer;background:var(--page);color:var(--ink-mid);font-weight:500;transition:all .12s}
+.cch.on{background:var(--hs6);color:white;border-color:var(--hs6)}
+.cch:hover:not(.on){border-color:var(--hs6);color:var(--hs6)}
+
+/* CALENDAR PICKER */
+.cal-trigger{display:flex;align-items:center;gap:7px;padding:4px 12px;border-radius:7px;border:1px solid var(--border);background:var(--page);font-size:12px;font-family:'Inter',sans-serif;font-weight:500;color:var(--ink);cursor:pointer;transition:border-color .14s;white-space:nowrap}
+.cal-trigger:hover{border-color:var(--ink-mid)}
+.cal-arrow{font-size:10px;color:var(--ink-light)}
+.cal-drop{position:absolute;top:calc(100% + 8px);left:0;z-index:300;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 32px rgba(13,17,23,.14);width:380px;padding:16px}
+.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.cal-title{font-size:12px;font-weight:700;color:var(--ink)}
+.cal-action{padding:3px 10px;border-radius:20px;border:1px solid var(--border);font-size:11px;cursor:pointer;background:var(--page);color:var(--ink-mid);font-weight:500;font-family:'Inter',sans-serif;transition:all .12s}
+.cal-action:hover{border-color:var(--acc);color:var(--acc)}
+.cal-hint{font-size:10px;color:var(--ink-light);margin-bottom:10px}
+.cal-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:12px}
+.cal-cell{padding:7px 4px;border-radius:7px;border:1px solid var(--border);font-size:11px;font-weight:600;text-align:center;cursor:pointer;transition:all .12s;background:var(--page);color:var(--ink-mid);user-select:none}
+.cal-cell:hover{border-color:var(--acc);color:var(--acc)}
+.cal-cell.on{background:var(--ink);color:white;border-color:var(--ink)}
+.cal-cell.last-sel{outline:2px solid var(--acc);outline-offset:1px}
+.cal-cell.range{background:var(--acc-lt);color:var(--acc);border-color:#bfdbfe}
+.cal-cell.no-data{opacity:.3;cursor:not-allowed;pointer-events:none}
+.cal-footer{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border);padding-top:10px}
+.cal-apply{padding:5px 18px;border-radius:7px;background:var(--ink);color:white;border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:background .14s}
+.cal-apply:hover{background:var(--acc)}
+
+/* ROW DETAIL DRAWER */
+.detail-drawer{position:fixed;right:0;top:56px;bottom:0;width:360px;background:var(--surface);border-left:1px solid var(--border);box-shadow:-4px 0 20px rgba(13,17,23,.1);z-index:150;transform:translateX(100%);transition:transform .22s ease;overflow-y:auto;padding:22px 20px}
+.detail-drawer.open{transform:translateX(0)}
+.drawer-close{position:absolute;top:14px;right:14px;background:var(--page);border:1px solid var(--border);border-radius:6px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:var(--ink-light)}
+.drawer-close:hover{border-color:var(--ink);color:var(--ink)}
+.drawer-title{font-family:'Fraunces',serif;font-size:16px;font-weight:600;line-height:1.3;margin-bottom:4px;padding-right:32px}
+.drawer-hs{font-family:monospace;font-size:11px;color:var(--ink-light);margin-bottom:16px}
+.drawer-section{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-light);margin:16px 0 8px}
+.drow{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;border-radius:8px;margin-bottom:5px}
+.drow.curr{background:var(--exp-lt)}
+.drow.prev{background:#f8f9fc;border:1px solid var(--border)}
+.drow .dk{font-size:11px;font-weight:600;color:var(--ink-mid)}
+.drow .dv{font-size:16px;font-weight:700}
+.drawer-delta{background:var(--acc-lt);border:1px solid #bfdbfe;border-radius:8px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center}
+.drawer-period-rows{display:flex;flex-direction:column;gap:4px}
+.dpr{display:grid;grid-template-columns:80px 1fr 1fr 1fr;gap:8px;align-items:center;padding:7px 10px;border-radius:7px;background:var(--page);font-size:11px}
+.dpr.header{background:transparent;font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.4px;color:var(--ink-light)}
+
+.drawer-add-btn{display:flex;align-items:center;gap:6px;width:100%;padding:8px 12px;border-radius:7px;border:1.5px solid var(--acc);background:var(--acc-lt);color:var(--acc);font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .14s;margin-bottom:14px}
+.drawer-add-btn:hover{background:var(--acc);color:#fff}
+.drawer-add-btn.added{border-color:var(--exp-mid);background:var(--exp-lt);color:var(--exp);cursor:default}
+.tbl-desc{font-size:11px;color:var(--ink-mid);line-height:1.55;margin-bottom:10px;padding:8px 11px;background:var(--page);border-radius:6px;border-left:3px solid var(--border)}
+.tbl-desc strong{color:var(--ink);font-weight:600}
+
+/* CHART TYPE TOGGLE */
+.chart-type-toggle{display:flex;gap:3px}
+.ct-btn{padding:3px 10px;border-radius:5px;border:1px solid var(--border);font-size:11px;font-weight:600;cursor:pointer;background:var(--page);color:var(--ink-mid);transition:all .12s;line-height:1.4}
+.ct-btn:hover{border-color:var(--acc);color:var(--acc)}
+.ct-btn.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+/* COUNTRY LENS */
+.lens-bar{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;margin-bottom:16px;box-shadow:var(--sh)}
+.lens-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.lens-title{font-size:12px;font-weight:700;color:var(--ink);white-space:nowrap}
+.lens-hint{font-size:11px;color:var(--ink-light)}
+.lens-search-wrap{position:relative;flex:1;min-width:180px;max-width:280px}
+.lens-search{width:100%;padding:5px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:'Inter',sans-serif;color:var(--ink);background:var(--page)}
+.lens-search:focus{outline:none;border-color:var(--acc)}
+.lens-dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 6px 24px rgba(13,17,23,.12);z-index:300;max-height:200px;overflow-y:auto;display:none}
+.lens-opt{padding:7px 12px;font-size:12px;cursor:pointer;color:var(--ink)}
+.lens-opt:hover{background:var(--acc-lt);color:var(--acc)}
+.lens-chips{display:flex;flex-wrap:wrap;gap:6px;min-height:28px}
+.lens-chip{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:1.5px solid transparent;transition:opacity .14s;white-space:nowrap}
+.lens-chip:hover{opacity:.8}
+.lens-chip-x{font-size:13px;line-height:1;opacity:.65;margin-left:2px}
+.lens-empty{font-size:12px;color:var(--ink-light);padding:36px 20px;text-align:center;border:2px dashed var(--border);border-radius:8px}
+.lens-section{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-light);margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+
+/* TOAST */
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--ink);color:white;padding:9px 18px;border-radius:8px;font-size:13px;font-weight:500;z-index:1000;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap}
+.toast.on{opacity:1}
+
+@media(max-width:960px){
+  .kpi-row{grid-template-columns:repeat(3,1fr)}
+  .g2,.cmp4{grid-template-columns:1fr}
+  .main,.topbar,.ctrlbar{padding-left:14px;padding-right:14px}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span style="font-size:22px">🇮🇳</span>
+    <div>
+      <span class="brand-name">India Trade Intelligence</span>
+      <span class="brand-sub">Ministry of Commerce · TradeStat MEIDB</span>
+    </div>
+  </div>
+  <div class="hs-pill">
+    <button class="hs-btn on-hs2" id="btnHS2" onclick="switchHS('hs2')">HS-2</button>
+    <button class="hs-btn"        id="btnHS6" onclick="switchHS('hs6')">HS-6</button>
+  </div>
+</header>
+
+<div class="ctrlbar" id="ctrlbar" style="display:none">
+  <div class="cg"><span class="clbl">Level</span><span class="hs-badge hs2" id="hsBadge">HS-2</span></div>
+  <div class="csep"></div>
+  <div class="cg" style="position:relative">
+    <span class="clbl">Periods</span>
+    <button class="cal-trigger" id="calTrigger" onclick="toggleCal(event)">
+      <span id="calLabel">All periods</span>
+      <span class="cal-arrow">▾</span>
+    </button>
+    <!-- CALENDAR DROPDOWN -->
+    <div class="cal-drop" id="calDrop" style="display:none" onclick="event.stopPropagation()">
+      <div class="cal-head">
+        <span class="cal-title">Select periods</span>
+        <div style="display:flex;gap:6px">
+          <button class="cal-action" onclick="calSelectAll()">All</button>
+          <button class="cal-action" onclick="calSelectNone()">None</button>
+          <button class="cal-action" onclick="calSelectLast3()">Last 3</button>
+          <button class="cal-action" onclick="calSelectLast6()">Last 6</button>
+        </div>
+      </div>
+      <div class="cal-hint" id="calHintText">Select the <strong>current-year</strong> periods to analyse. Prior-year figures are read from the same files automatically.</div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="cal-footer">
+        <span id="calSelCount" style="font-size:11px;color:var(--ink-light)"></span>
+        <button class="cal-apply" onclick="calApply()">Apply</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="main" id="main">
+  <div id="screen" class="status-screen">
+    <div class="spin"></div>
+    <h2 id="screenTitle">Loading trade data…</h2>
+    <p id="screenMsg">Reading files from hs2/ and hs6/ folders</p>
+  </div>
+
+  <div id="dash" style="display:none">
+    <div class="kpi-row" id="kpiRow"></div>
+    <div class="tab-row">
+      <div class="tab on" onclick="goTab('overview')">Trade Balance</div>
+      <div class="tab"    onclick="goTab('country')">Partner Countries</div>
+      <div class="tab"    onclick="goTab('growth')">Commodity Deep-Dive</div>
+      <div class="tab"    onclick="goTab('contact')">Contact</div>
+    </div>
+
+    <!-- ── OVERVIEW ── -->
+    <div class="tp on" id="tab-overview">
+      <div class="g2">
+        <div class="card">
+          <div class="ch">
+            <div><div class="ct">Exports vs Imports</div><div class="cs" id="ovSub"></div></div>
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+              <div class="lgnd">
+                <div class="li"><div class="lsq" style="background:var(--exp-mid)"></div>Exports</div>
+                <div class="li"><div class="lsq" style="background:var(--imp-mid)"></div>Imports</div>
+              </div>
+              <div id="togBalWrap"></div>
+            </div>
+          </div>
+          <div class="cw" style="height:260px"><canvas id="cBal"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="ch"><div><div class="ct">Share of Total Trade</div><div class="cs">Export / Import split</div></div></div>
+          <div class="cw" style="height:200px"><canvas id="cDonut"></canvas></div>
+          <div class="bsum" id="bsum"></div>
+        </div>
+      </div>
+      <div class="g1">
+        <div class="card">
+          <div class="ch"><div><div class="ct">Balance Trend Across Periods</div><div class="cs">Positive = surplus · Negative = deficit</div></div></div>
+          <div class="cw" style="height:165px"><canvas id="cTrend"></canvas></div>
+        </div>
+      </div>
+      <div class="g1">
+        <div class="card">
+          <div class="ch">
+            <div><div class="ct">Exports &amp; Imports per Period</div><div class="cs">Absolute values across all loaded periods — US $ Million</div></div>
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+              <div class="lgnd">
+                <div class="li"><div class="lsq" style="background:var(--exp-mid)"></div>Exports</div>
+                <div class="li"><div class="lsq" style="background:var(--imp-mid)"></div>Imports</div>
+              </div>
+              <div id="togExpImpTrendWrap"></div>
+            </div>
+          </div>
+          <div class="cw" style="height:200px"><canvas id="cExpImpTrend"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── COUNTRIES ── -->
+    <div class="tp" id="tab-country">
+      <div id="cntHs6Note" style="display:none;background:#fefce8;border:1px solid #fde047;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#713f12;line-height:1.5">
+        <strong>⚠ HS-6 mode — Chapter filter does not apply here.</strong>
+        Country-level trade data is available only at the <strong>total trade</strong> level (all commodities combined). The HS-2 chapter filter you may have selected in the Commodities tab has <strong>no effect</strong> on the figures shown below. To analyse trade by commodity <em>and</em> country simultaneously, you would need a commodity×country breakdown file which is not included in these exports.
+      </div>
+
+      <!-- ── COUNTRY LENS ── -->
+      <div class="lens-bar">
+        <div class="lens-top">
+          <span class="lens-title">🔍 Country Lens</span>
+          <span class="lens-hint">Pick countries to see their trade trends across all loaded periods</span>
+          <div class="lens-search-wrap">
+            <input class="lens-search" id="lensSearch" type="text" placeholder="Type a country name…" oninput="lensOnInput()" onfocus="lensOnInput()" onblur="setTimeout(lensHideDrop,180)" autocomplete="off">
+            <div class="lens-dropdown" id="lensDrop"></div>
+          </div>
+          <button class="flt-btn" onclick="lensClear()" style="color:var(--imp);white-space:nowrap">✕ Clear all</button>
+        </div>
+        <div class="lens-chips" id="lensChips">
+          <span class="lens-hint" style="padding:4px 0">No countries selected — search above to add one</span>
+        </div>
+      </div>
+
+      <!-- ── COUNTRY LENS TRENDS ── -->
+      <div id="lensTrendSection" style="display:none;margin-bottom:20px">
+        <div class="g1">
+          <div class="card">
+            <div class="ch">
+              <div><div class="ct">Exports to Selected Countries — Trend</div><div class="cs" id="lensExpSub"></div></div>
+              <div class="lgnd" id="lensExpLgnd"></div>
+            </div>
+            <div class="cw" style="height:240px"><canvas id="cLensExp"></canvas></div>
+          </div>
+        </div>
+        <div class="g1">
+          <div class="card">
+            <div class="ch">
+              <div><div class="ct">Imports from Selected Countries — Trend</div><div class="cs" id="lensImpSub"></div></div>
+              <div class="lgnd" id="lensImpLgnd"></div>
+            </div>
+            <div class="cw" style="height:240px"><canvas id="cLensImp"></canvas></div>
+          </div>
+        </div>
+        <div class="g1">
+          <div class="card">
+            <div class="ch">
+              <div><div class="ct">Trade Balance — Surplus / Deficit Trend</div><div class="cs" id="lensBalSub"></div></div>
+              <div style="font-size:11px;color:var(--ink-light)">Positive = India surplus · Negative = India deficit</div>
+            </div>
+            <div class="cw" style="height:240px"><canvas id="cLensBal"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── STANDARD TABLES DIVIDER ── -->
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-light);margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--border)">All Countries — Ranked Tables &amp; Charts</div>
+      <div class="g2">
+        <div class="card">
+          <div class="ch">
+            <div><div class="ct">Where India Exports To — by Value</div><div class="cs" id="expCnSub"></div></div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <div class="nctl"><label for="nCntTbl">Rows</label><input type="number" id="nCntTbl" value="30" min="5" max="200" oninput="onNChange('cntTbl')"></div>
+              <input class="srch" type="text" id="srchECn" placeholder="Search…" oninput="filterCnt('export')">
+            </div>
+          </div>
+          <div class="tbl-desc">Countries ranked by <strong>total export value (US $M)</strong> received from India. The #1 country is where India sent the most goods by dollar value — not necessarily the highest growth rate.</div>
+          <div class="stbl"><table class="tbl" id="tECn"></table></div>
+        </div>
+        <div class="card">
+          <div class="ch">
+            <div><div class="ct">Where India Imports From — by Value</div><div class="cs" id="impCnSub"></div></div>
+            <input class="srch" type="text" id="srchICn" placeholder="Search…" oninput="filterCnt('import')">
+          </div>
+          <div class="tbl-desc">Countries ranked by <strong>total import value (US $M)</strong> shipped into India. The #1 country is India's largest supplier by spend — YoY % shows whether sourcing from that country grew or shrank.</div>
+          <div class="stbl"><table class="tbl" id="tICn"></table></div>
+        </div>
+      </div>
+      <div class="g2">
+        <div class="card">
+          <div class="ch">
+            <div><div class="ct" id="topCntTitleE">Top Export Destinations by Value</div><div class="cs">US $ Million — current vs prior year</div></div>
+            <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+              <div class="lgnd">
+                <div class="li"><div class="lsq" style="background:rgba(34,163,102,.85)"></div>Current</div>
+                <div class="li"><div class="lsq" style="background:rgba(34,163,102,.22)"></div>Prior Year</div>
+              </div>
+              <div class="nctl"><label for="nCnt">Chart top</label><input type="number" id="nCnt" value="12" min="3" max="50" oninput="onNChange('cnt')"></div>
+              <div id="togCntEWrap"></div>
+            </div>
+          </div>
+          <div class="cw" id="cwCntE" style="height:320px"><canvas id="cCntE"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="ch">
+            <div><div class="ct" id="topCntTitleI">Top Import Sources by Value</div><div class="cs">US $ Million — current vs prior year</div></div>
+            <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+              <div class="lgnd">
+                <div class="li"><div class="lsq" style="background:rgba(220,38,38,.82)"></div>Current</div>
+                <div class="li"><div class="lsq" style="background:rgba(220,38,38,.22)"></div>Prior Year</div>
+              </div>
+              <div id="togCntIWrap"></div>
+            </div>
+          </div>
+          <div class="cw" id="cwCntI" style="height:320px"><canvas id="cCntI"></canvas></div>
+        </div>
+      </div>
+
+      <!-- COUNTRY GAINERS / DECLINERS -->
+      <div style="margin-top:6px;margin-bottom:10px;padding-top:16px;border-top:2px solid var(--border)">
+        <div style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:4px">Which Markets are Growing or Shrinking</div>
+        <div style="font-size:11px;color:var(--ink-light);margin-bottom:14px">Countries ranked by YoY growth rate — export and import values shown side by side for context</div>
+      </div>
+      <div class="g2">
+        <div class="card">
+          <div class="ch">
+            <div><div class="ct">Export Markets Growing Fastest</div><div class="cs">Ranked by YoY % growth in India's exports to each country</div></div>
+            <div id="togCntExpGainWrap"></div>
+          </div>
+          <div class="tbl-desc">Countries ranked by <strong>fastest YoY % growth in export value</strong>. These are markets where India's exports accelerated the most — filtered to countries with meaningful prior-year baseline to avoid noise from very small trade flows.</div>
+          <div class="stbl" style="max-height:300px"><table class="tbl" id="tCntExpGain"></table></div>
+          <div class="cw" style="height:220px;margin-top:14px"><canvas id="cCntExpGain"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="ch">
+            <div><div class="ct">Import Sources Growing Fastest</div><div class="cs">Ranked by YoY % growth in India's imports from each country</div></div>
+            <div id="togCntImpGainWrap"></div>
+          </div>
+          <div class="tbl-desc">Countries ranked by <strong>fastest YoY % growth in import value</strong>. These are suppliers from whom India's sourcing grew the most — could signal new supply relationships or rising commodity prices from that origin.</div>
+          <div class="stbl" style="max-height:300px"><table class="tbl" id="tCntImpGain"></table></div>
+          <div class="cw" style="height:220px;margin-top:14px"><canvas id="cCntImpGain"></canvas></div>
+        </div>
+      </div>
+      <div class="g1">
+        <div class="card">
+          <div class="ch">
+            <div><div class="ct">Net Export Countries — Where India Runs a Surplus</div><div class="cs">Exports exceed imports · ranked by net export value (Exp − Imp) · US $M</div></div>
+            <div class="nctl"><label for="nCntNet">Rows</label><input type="number" id="nCntNet" value="20" min="3" max="200" oninput="onNChange('cntNet')"></div>
+          </div>
+          <div class="tbl-desc">Countries where India's exports exceed its imports — ranked by the <strong>size of that surplus (Exports − Imports)</strong>. #1 is the country where India has the largest net export position. All countries with data on both sides are included.</div>
+          <div class="stbl" style="max-height:320px;margin-bottom:14px"><table class="tbl tbl-auto" id="tCntGainNet"></table></div>
+          <div style="display:flex;justify-content:flex-end;margin-bottom:6px"><div id="togCntGainNetWrap"></div></div>
+          <div class="cw" id="cwCntGainNet" style="height:280px"><canvas id="cCntGainNet"></canvas></div>
+        </div>
+      </div>
+      <div class="g2">
+        <div class="card">
+          <div class="ch">
+            <div><div class="ct">Export Markets Losing Momentum</div><div class="cs">Ranked by steepest YoY % fall in India's exports to each country</div></div>
+            <div id="togCntExpDeclWrap"></div>
+          </div>
+          <div class="tbl-desc">Countries where India's <strong>export value fell the most (YoY %)</strong> — markets losing momentum. Shows absolute values so you can judge whether the decline is large in dollar terms or just a small market contracting.</div>
+          <div class="stbl" style="max-height:300px"><table class="tbl" id="tCntExpDecl"></table></div>
+          <div class="cw" style="height:220px;margin-top:14px"><canvas id="cCntExpDecl"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="ch">
+            <div><div class="ct">Import Sources Losing Share</div><div class="cs">Ranked by steepest YoY % fall in India's imports from each country</div></div>
+            <div id="togCntImpDeclWrap"></div>
+          </div>
+          <div class="tbl-desc">Countries where India's <strong>import spend fell the most (YoY %)</strong> — suppliers losing share. May reflect substitution to other origins, lower commodity prices, or deliberate policy to reduce reliance on a source.</div>
+          <div class="stbl" style="max-height:300px"><table class="tbl" id="tCntImpDecl"></table></div>
+          <div class="cw" style="height:220px;margin-top:14px"><canvas id="cCntImpDecl"></canvas></div>
+        </div>
+      </div>
+      <div class="g1">
+        <div class="card">
+          <div class="ch">
+            <div><div class="ct">Net Import Countries — Where India Runs a Deficit</div><div class="cs">Imports exceed exports · ranked by net import value (Imp − Exp) · US $M</div></div>
+            <div class="nctl"><label style="color:var(--ink-light);font-size:11px">Rows controlled by Surplus ↑</label></div>
+          </div>
+          <div class="tbl-desc">Countries where India's imports exceed its exports — ranked by the <strong>size of that deficit (Imports − Exports)</strong>. #1 is the country where India has the largest net import position (highest dependency).</div>
+          <div class="stbl" style="max-height:320px;margin-bottom:14px"><table class="tbl tbl-auto" id="tCntDeclNet"></table></div>
+          <div style="display:flex;justify-content:flex-end;margin-bottom:6px"><div id="togCntDeclNetWrap"></div></div>
+          <div class="cw" id="cwCntDeclNet" style="height:280px"><canvas id="cCntDeclNet"></canvas></div>
+        </div>
+      </div>
+    </div>
+    <div class="tp" id="tab-growth">
+      <!-- ── HS-6 CHAPTER FILTER (shared with old commodity tab) ── -->
+      <div id="chapWrap" style="display:none">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-light);margin-bottom:6px">Filter by HS-2 Chapter</div>
+        <div class="chap-bar" id="chapBar"></div>
+      </div>
+
+      <!-- ── COMMODITY LENS ── -->
+      <div class="lens-bar">
+        <div class="lens-top">
+          <span class="lens-title">🔍 Commodity Lens</span>
+          <span class="lens-hint">Pick commodities to compare their export, import and balance trends across periods</span>
+          <div class="lens-search-wrap">
+            <input class="lens-search" id="commLensSearch" type="text" placeholder="Type a commodity…" oninput="commLensOnInput()" onfocus="commLensOnInput()" onblur="setTimeout(commLensHideDrop,180)" autocomplete="off">
+            <div class="lens-dropdown" id="commLensDrop"></div>
+          </div>
+          <button class="flt-btn" onclick="commLensClear()" style="color:var(--imp);white-space:nowrap">✕ Clear all</button>
+        </div>
+        <div class="lens-chips" id="commLensChips">
+          <span class="lens-hint" style="padding:4px 0">No commodities selected — search above to add one</span>
+        </div>
+      </div>
+
+      <!-- ── COMMODITY LENS TRENDS ── -->
+      <div id="commLensTrendSection" style="display:none;margin-bottom:20px">
+        <div class="g1">
+          <div class="card">
+            <div class="ch">
+              <div><div class="ct">Exports of Selected Commodities — Trend</div><div class="cs" id="commLensExpSub"></div></div>
+              <div class="lgnd" id="commLensExpLgnd"></div>
+            </div>
+            <div class="cw" style="height:240px"><canvas id="cCommLensExp"></canvas></div>
+          </div>
+        </div>
+        <div class="g1">
+          <div class="card">
+            <div class="ch">
+              <div><div class="ct">Imports of Selected Commodities — Trend</div><div class="cs" id="commLensImpSub"></div></div>
+              <div class="lgnd" id="commLensImpLgnd"></div>
+            </div>
+            <div class="cw" style="height:240px"><canvas id="cCommLensImp"></canvas></div>
+          </div>
+        </div>
+        <div class="g1">
+          <div class="card">
+            <div class="ch">
+              <div><div class="ct">Trade Balance by Commodity — Surplus / Deficit Trend</div><div class="cs" id="commLensBalSub"></div></div>
+              <div style="font-size:11px;color:var(--ink-light)">Positive = India net exporter · Negative = India net importer</div>
+            </div>
+            <div class="cw" style="height:240px"><canvas id="cCommLensBal"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── COMMODITY RANKED TABLES ── -->
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-light);margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--border)">All Commodities — Ranked Tables &amp; Charts</div>
+      <div class="g2">
+        <div class="card">
+          <div class="ch">
+            <div><div class="ct">What India Exports — by Value</div><div class="cs" id="expCSub"></div></div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <div class="nctl"><label for="nCommTbl">Rows</label><input type="number" id="nCommTbl" value="30" min="5" max="200" oninput="onNChange('commTbl')"></div>
+              <input class="srch" type="text" id="srchEC" placeholder="Search…" oninput="filterComm('export')">
+            </div>
+          </div>
+          <div class="tbl-desc">Commodities ranked by <strong>total export value (US $M)</strong> in the selected period. #1 is India's largest export commodity by dollar value — YoY % shows how that value changed vs the same period last year.</div>
+          <div class="stbl"><table class="tbl" id="tEC"></table></div>
+        </div>
+        <div class="card">
+          <div class="ch">
+            <div><div class="ct">What India Imports — by Value</div><div class="cs" id="impCSub"></div></div>
+            <input class="srch" type="text" id="srchIC" placeholder="Search…" oninput="filterComm('import')">
+          </div>
+          <div class="tbl-desc">Commodities ranked by <strong>total import value (US $M)</strong> — what India spent the most importing. The YoY % reflects whether demand or global prices pushed that spend up or down vs last year.</div>
+          <div class="stbl"><table class="tbl" id="tIC"></table></div>
+        </div>
+      </div>
+
+      <!-- ── COMMODITY VALUE CHARTS ── -->
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-light);margin-bottom:10px;padding-bottom:6px;border-top:2px solid var(--border);padding-top:16px">Commodity Value — Top N by Period</div>
+      <div class="g2" style="margin-bottom:14px">
+        <div class="card">
+          <div class="ch">
+            <div><div class="ct" id="topCommTitleE">Top Exports by Value</div><div class="cs">US $ Million — current vs prior year</div></div>
+            <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+              <div class="lgnd">
+                <div class="li"><div class="lsq" style="background:rgba(34,163,102,.85)"></div>Current</div>
+                <div class="li"><div class="lsq" style="background:rgba(34,163,102,.22)"></div>Prior Year</div>
+              </div>
+              <div class="nctl"><label for="nComm">Show top</label><input type="number" id="nComm" value="10" min="3" max="50" oninput="onNChange('comm')"></div>
+              <div id="togTCWrap"></div>
+            </div>
+          </div>
+          <div class="cw" id="cwCommE" style="height:340px"><canvas id="cTC"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="ch">
+            <div><div class="ct" id="topCommTitleI">Top Imports by Value</div><div class="cs">US $ Million — current vs prior year</div></div>
+            <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+              <div class="lgnd">
+                <div class="li"><div class="lsq" style="background:rgba(220,38,38,.82)"></div>Current</div>
+                <div class="li"><div class="lsq" style="background:rgba(220,38,38,.22)"></div>Prior Year</div>
+              </div>
+              <div id="togTCIWrap"></div>
+            </div>
+          </div>
+          <div class="cw" id="cwCommI" style="height:340px"><canvas id="cTCI"></canvas></div>
+        </div>
+      </div>
+
+      <!-- ── GROWTH LEADERS ── -->
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-light);margin-bottom:10px;padding-bottom:6px;border-top:2px solid var(--border);padding-top:16px">Commodity Growth — Gainers &amp; Decliners</div>
+      <div style="display:flex;align-items:center;justify-content:flex-end;margin-bottom:12px;gap:10px;flex-wrap:wrap">
+        <div class="nctl">
+          <label for="nGrowth">Show top/bottom</label>
+          <input type="number" id="nGrowth" value="10" min="3" max="30" oninput="onNChange('growth')">
+          <label style="margin-left:0">commodities in each panel</label>
+        </div>
+      </div>
+
+      <!-- GAINERS -->
+      <div class="g2">
+        <div class="card">
+          <div class="ch">
+            <div><div class="ct">Exports Accelerating Most</div><div class="cs">Commodities with the highest YoY % growth in export value</div></div>
+            <div id="togEGWrap"></div>
+          </div>
+          <div class="tbl-desc">Commodities with the <strong>highest YoY % increase in export value</strong>. These are India's fastest-accelerating exports — ranked by growth rate, not size, so a niche commodity that doubled is listed above a large one that grew 10%.</div>
+          <div class="stbl"><table class="tbl" id="tEG"></table></div>
+          <div class="cw" style="height:220px;margin-top:14px"><canvas id="cEG"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="ch">
+            <div><div class="ct">Imports Rising Fastest</div><div class="cs">Commodities with the highest YoY % growth in import value</div></div>
+            <div id="togIGWrap"></div>
+          </div>
+          <div class="tbl-desc">Commodities with the <strong>highest YoY % increase in import value</strong>. Ranked by growth rate — a rising figure could mean higher volumes, higher global prices, or both. Small-base items may show outsized % swings.</div>
+          <div class="stbl"><table class="tbl" id="tIG"></table></div>
+          <div class="cw" style="height:220px;margin-top:14px"><canvas id="cIG"></canvas></div>
+        </div>
+      </div>
+      <div class="g1">
+        <div class="card">
+          <div class="ch">
+            <div><div class="ct">Net Export Commodities — Where India Runs a Surplus</div><div class="cs">Exports exceed imports · ranked by net export value (Exp − Imp) · US $M</div></div>
+            <div class="nctl"><label for="nGrowthNet">Rows</label><input type="number" id="nGrowthNet" value="20" min="5" max="100" oninput="onNChange('growthNet')"></div>
+          </div>
+          <div class="tbl-desc">Commodities where India's exports exceed its imports — ranked by the <strong>size of that surplus (Exports − Imports)</strong>. #1 is the commodity where India nets the highest absolute export surplus.</div>
+          <div class="stbl" style="max-height:320px;margin-bottom:14px"><table class="tbl tbl-auto" id="tGainNet"></table></div>
+          <div style="display:flex;justify-content:flex-end;margin-bottom:6px"><div id="togGainNetWrap"></div></div>
+          <div class="cw" id="cwGainNet" style="height:260px"><canvas id="cGainNet"></canvas></div>
+        </div>
+      </div>
+
+      <!-- DECLINERS -->
+      <div class="g2">
+        <div class="card">
+          <div class="ch">
+            <div><div class="ct">Exports Falling Sharpest</div><div class="cs">Commodities with the steepest YoY % drop in export value</div></div>
+            <div id="togEDWrap"></div>
+          </div>
+          <div class="tbl-desc">Commodities with the <strong>steepest YoY % fall in export value</strong>. Ranked by magnitude of decline — check the Current/Prior Year columns to judge whether it's a large commodity losing ground or a minor item with volatile volumes.</div>
+          <div class="stbl" style="max-height:300px"><table class="tbl" id="tED"></table></div>
+          <div class="cw" style="height:220px;margin-top:14px"><canvas id="cED"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="ch">
+            <div><div class="ct">Imports Falling Sharpest</div><div class="cs">Commodities with the steepest YoY % drop in import value</div></div>
+            <div id="togIDWrap"></div>
+          </div>
+          <div class="tbl-desc">Commodities with the <strong>steepest YoY % fall in import value</strong>. A declining import may mean lower domestic demand, cheaper domestic substitutes, or falling global prices — the absolute values help distinguish these scenarios.</div>
+          <div class="stbl" style="max-height:300px"><table class="tbl" id="tID"></table></div>
+          <div class="cw" style="height:220px;margin-top:14px"><canvas id="cID"></canvas></div>
+        </div>
+      </div>
+      <div class="g1">
+        <div class="card">
+          <div class="ch">
+            <div><div class="ct">Net Import Commodities — Where India Runs a Deficit</div><div class="cs">Imports exceed exports · ranked by net import value (Imp − Exp) · US $M</div></div>
+            <div class="nctl"><label style="color:var(--ink-light);font-size:11px">Rows controlled by Surplus ↑</label></div>
+          </div>
+          <div class="tbl-desc">Commodities where India's imports exceed its exports — ranked by the <strong>size of that deficit (Imports − Exports)</strong>. #1 is the commodity where India has the largest net import position (highest dependency).</div>
+          <div class="stbl" style="max-height:320px;margin-bottom:14px"><table class="tbl tbl-auto" id="tDeclNet"></table></div>
+          <div style="display:flex;justify-content:flex-end;margin-bottom:6px"><div id="togDeclNetWrap"></div></div>
+          <div class="cw" id="cwDeclNet" style="height:260px"><canvas id="cDeclNet"></canvas></div>
+        </div>
+      </div>
+
+    </div>
+
+
+    <!-- ── CONTACT ── -->
+    <div class="tp" id="tab-contact">
+      <div style="max-width:560px;margin:40px auto 0">
+        <div class="card" style="padding:36px 40px;text-align:center">
+          <div style="font-size:48px;margin-bottom:18px">🇮🇳</div>
+          <div style="font-family:'Fraunces',serif;font-size:26px;font-weight:600;color:var(--ink);margin-bottom:4px">Siddhartha</div>
+          <div style="font-size:13px;color:var(--ink-light);margin-bottom:28px;letter-spacing:.3px">India Trade Intelligence · Data &amp; Analysis</div>
+          <div style="display:flex;flex-direction:column;gap:14px;align-items:center">
+            <a href="mailto:sidpradeep7@gmail.com" style="display:inline-flex;align-items:center;gap:12px;padding:12px 24px;border-radius:10px;border:1.5px solid var(--border);background:var(--page);color:var(--ink);text-decoration:none;font-size:14px;font-weight:500;width:100%;max-width:340px;transition:border-color .15s,background .15s" onmouseover="this.style.borderColor='var(--acc)';this.style.background='var(--acc-lt)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--page)'">
+              <span style="font-size:20px">✉</span>
+              <span>sidpradeep7@gmail.com</span>
+            </a>
+            <a href="https://www.linkedin.com/in/siddharthapradeep/" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:12px;padding:12px 24px;border-radius:10px;border:1.5px solid var(--border);background:var(--page);color:var(--ink);text-decoration:none;font-size:14px;font-weight:500;width:100%;max-width:340px;transition:border-color .15s,background .15s" onmouseover="this.style.borderColor='#0a66c2';this.style.background='#eef3fa'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--page)'">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#0a66c2"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+              <span>linkedin.com/in/siddharthapradeep</span>
+            </a>
+          </div>
+          <div style="margin-top:32px;padding-top:24px;border-top:1px solid var(--border);font-size:12px;color:var(--ink-light);line-height:1.7">
+            Data sourced from the Ministry of Commerce &amp; Industry, Government of India — TradeStat MEIDB.<br>
+            For queries on the dashboard, methodology, or trade data, feel free to reach out.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /dash -->
+</div><!-- /main -->
+
+<!-- DETAIL DRAWER -->
+<div class="detail-drawer" id="detailDrawer">
+  <div class="drawer-close" onclick="closeDrawer()">✕</div>
+  <div id="drawerContent"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════
+const S = {
+  hs: 'hs2',
+  chapter: 'ALL',
+  db: { hs2: [], hs6: [] }
+};
+const CH = {};
+const MONS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+// N values for each chart/table
+// comm = commodity bar charts, commTbl = commodity table rows
+// cnt = country bar chart, cntTbl = country table rows
+// growth = growth YoY tables+charts, growthNet = net combined table rows
+// compare = compare tab chart
+const N = { comm:10, commTbl:30, cnt:12, cntTbl:30, cntNet:20, growth:10, growthNet:20 };
+
+// (Filter state removed — net balance tables no longer use show/hide filters)
+
+// Chart type state: 'bar' | 'line' for each named chart group
+const CT = {
+  cBal:'bar', cExpImpTrend:'bar',
+  cTC:'bar', cTCI:'bar',
+  cCntE:'bar', cCntI:'bar',
+  cEG:'bar', cIG:'bar', cED:'bar', cID:'bar',
+  cGainNet:'bar', cDeclNet:'bar',
+  cCntExpGain:'bar', cCntImpGain:'bar', cCntExpDecl:'bar', cCntImpDecl:'bar',
+  cCntGainNet:'bar', cCntDeclNet:'bar'
+};
+
+function setChartType(id, type) {
+  CT[id] = type;
+  document.querySelectorAll(`.ct-btn[data-chart="${id}"]`).forEach(b => b.classList.toggle('on', b.dataset.type === type));
+  if (['cBal','cExpImpTrend'].includes(id)) renderOverview();
+  else if (['cTC','cTCI'].includes(id)) renderCommodities();
+  else if (['cCntE','cCntI','cCntExpGain','cCntImpGain','cCntExpDecl','cCntImpDecl','cCntGainNet','cCntDeclNet'].includes(id)) renderCountries();
+  else if (['cEG','cIG','cED','cID','cGainNet','cDeclNet'].includes(id)) renderGrowth();
+}
+
+function ctToggle(id) {
+  const cur = CT[id]||'bar';
+  return `<div class="chart-type-toggle">
+    <button class="ct-btn ${cur==='bar'?'on':''}" data-chart="${id}" data-type="bar" onclick="setChartType('${id}','bar')">Bar</button>
+    <button class="ct-btn ${cur==='line'?'on':''}" data-chart="${id}" data-type="line" onclick="setChartType('${id}','line')">Line</button>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════
+// BOOT
+// ══════════════════════════════════════════════════
+async function boot() {
+  setScreen('loading','Loading trade data…','Scanning hs2/ and hs6/ folders…');
+  let totalLoaded = 0;
+  for (const hs of ['hs2','hs6']) {
+    let files = [];
+    try {
+      const res = await fetch(`/api/files?folder=${hs}`);
+      if (!res.ok) throw new Error();
+      files = await res.json();
+    } catch(e) { continue; }
+    for (const fname of files.filter(f=>f.toLowerCase().endsWith('.xlsx'))) {
+      try {
+        setScreen('loading','Loading trade data…',`Reading ${hs}/${fname}…`);
+        const buf = await fetch(`/${hs}/${fname}`).then(r=>r.arrayBuffer());
+        const wb = XLSX.read(buf,{type:'array'});
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        ingestRows(XLSX.utils.sheet_to_json(ws,{header:1,defval:null}), fname, hs);
+        totalLoaded++;
+      } catch(e) { console.warn(`Failed: ${hs}/${fname}`,e); }
+    }
+  }
+  for (const hs of ['hs2','hs6']) S.db[hs].sort((a,b)=>mnum(a.period)-mnum(b.period));
+  if (totalLoaded===0) {
+    setScreen('empty','No data files found',
+      'Make sure the server is running (python3 serve.py) and xlsx files are in the hs2/ or hs6/ folders.',
+      `<div class="file-tags"><div class="ftag"><strong>hs2/</strong> — 2-digit HS files</div><div class="ftag"><strong>hs6/</strong> — 6-digit HS files</div></div>`);
+    return;
+  }
+  toast(`✓ Loaded ${totalLoaded} file(s)`);
+  renderAll();
+}
+
+// ══════════════════════════════════════════════════
+// INGEST
+// ══════════════════════════════════════════════════
+function ingestRows(rows, fname, hs) {
+  if (!rows||rows.length<4) return;
+  const row0=(rows[0]?.[0]||'').toString().toLowerCase();
+  const fn=fname.toLowerCase();
+  const has=(s,...k)=>k.every(x=>s.includes(x));
+  let type=null;
+  if      (has(row0,'export','commodity')||has(fn,'export','commodity')) type='exportComm';
+  else if (has(row0,'import','commodity')||has(fn,'import','commodity')) type='importComm';
+  else if (has(row0,'export','country')  ||has(fn,'export','country'))   type='exportCountry';
+  else if (has(row0,'import','country')  ||has(fn,'import','country'))   type='importCountry';
+  if (!type) return;
+  const period=extractPeriod(rows[2]||[]);
+  if (!period) return;
+  let bucket=S.db[hs].find(b=>b.period===period);
+  if (!bucket) { bucket={period,exportComm:[],importComm:[],exportCountry:[],importCountry:[],totals:{}}; S.db[hs].push(bucket); }
+  const isCmm=type==='exportComm'||type==='importComm';
+  const nC=isCmm?2:1, hsC=isCmm?1:null;
+  const c=isCmm?{m25:3,m26:4,mG:5,q25:6,q26:7,qG:8}:{m25:2,m26:3,mG:4,q25:5,q26:6,qG:7};
+  const parsed=[]; let totM26=null,totQ26=null;
+  for (let i=3;i<rows.length;i++) {
+    const row=rows[i]; if(!row) continue;
+    const name=(row[nC]||'').toString().trim(); if(!name) continue;
+    const isTotal=name.toLowerCase().includes("india's total");
+    const m25=+row[c.m25]||0,m26=+row[c.m26]||0;
+    const mG=parseFloat(row[c.mG]),q25=+row[c.q25]||0,q26=+row[c.q26]||0,qG=parseFloat(row[c.qG]);
+    if (isTotal) { totM26=m26; totQ26=q26; continue; }
+    // Strip ALL whitespace from HS code (some cells have padding spaces)
+    const rawHs=hsC!=null?(row[hsC]||'').toString().replace(/\s+/g,''):null;
+    parsed.push({name,hs:rawHs||null,m25,m26,mGrowth:isNaN(mG)?null:mG,q25,q26,qGrowth:isNaN(qG)?null:qG});
+  }
+  bucket[type]=parsed;
+  if (totM26!=null) {
+    const tK=(type==='exportComm'||type==='exportCountry')?'expM':'impM';
+    const qK=(type==='exportComm'||type==='exportCountry')?'expQ':'impQ';
+    bucket.totals[tK]=totM26; bucket.totals[qK]=totQ26;
+  }
+}
+
+function extractPeriod(hr) {
+  // Collect ALL period strings from ALL header cells, then pick the highest (= current year)
+  // Bug was: returning on first matching cell meant Mar-2025 was picked before Mar-2026
+  const all = [];
+  for (const cell of hr) {
+    if (!cell) continue;
+    const hits = [...cell.toString().matchAll(/([A-Za-z]{3}-\d{4})/g)].map(m => m[1]);
+    all.push(...hits);
+  }
+  if (!all.length) return null;
+  return all.sort((a,b) => mnum(b)-mnum(a))[0];  // highest = current year
+}
+
+function mnum(s) {
+  if(!s)return 0;
+  const[mon,yr]=s.split('-');
+  return +(yr||0)*12+MONS.indexOf(mon);
+}
+
+// ══════════════════════════════════════════════════
+// HS / VIEW
+// ══════════════════════════════════════════════════
+function switchHS(hs) {
+  S.hs=hs; S.chapter='ALL';
+  document.getElementById('btnHS2').className='hs-btn'+(hs==='hs2'?' on-hs2':'');
+  document.getElementById('btnHS6').className='hs-btn'+(hs==='hs6'?' on-hs6':'');
+  const b=document.getElementById('hsBadge');
+  b.textContent=`HS-${hs==='hs2'?'2':'6'}`;
+  b.className=`hs-badge ${hs}`;
+  if (S.db[hs].length) { initActivePeriods(); renderAll(); }
+  else toast(`No HS-${hs==='hs2'?'2':'6'} data in ${hs}/ folder`);
+}
+
+// View is always monthly — quarterly removed
+
+// ══════════════════════════════════════════════════
+// N-CONTROL
+// ══════════════════════════════════════════════════
+function onNChange(key) {
+  const idMap={comm:'nComm',commTbl:'nCommTbl',cnt:'nCnt',cntTbl:'nCntTbl',cntNet:'nCntNet',
+               growth:'nGrowth',growthNet:'nGrowthNet'};
+  const el=document.getElementById(idMap[key]);
+  if(!el) return;
+  const maxVal=key==='growth'?30:100;
+  const v=Math.max(3,Math.min(maxVal,parseInt(el.value)||10));
+  N[key]=v;
+  if (key==='comm'||key==='commTbl') renderCommodities();
+  else if (key==='cnt'||key==='cntTbl'||key==='cntNet') renderCountries();
+  else if (key==='growth'||key==='growthNet') renderGrowth();
+}
+
+// ══════════════════════════════════════════════════
+// PERIODS
+// ══════════════════════════════════════════════════
+let activePeriodSet=new Set();
+
+function initActivePeriods() {
+  activePeriodSet=new Set(S.db[S.hs].map(b=>b.period));
+  updateCalTriggerLabel();
+}
+
+function getActive() { return S.db[S.hs].filter(b=>activePeriodSet.has(b.period)); }
+
+// Derive human-readable period labels from actual active data
+// Returns {curLbl, preLbl, curShort, preShort} — always monthly
+function getPeriodLabels() {
+  const active=[...activePeriodSet].sort((a,b)=>mnum(a)-mnum(b));
+  if (active.length===0) return {curLbl:'Current',preLbl:'Prior Year',curShort:'Curr',preShort:'Prev'};
+
+  if (active.length===1) {
+    const [mon,yr]=active[0].split('-');
+    const prevYr=String(+yr-1);
+    return {
+      curLbl:`${mon} ${yr}`, preLbl:`${mon} ${prevYr}`,
+      curShort:`${mon} ${yr}`, preShort:`${mon} ${prevYr}`
+    };
+  }
+
+  // Multiple periods: show range
+  const first=active[0], last=active[active.length-1];
+  const [fmon,fyr]=first.split('-');
+  const [lmon,lyr]=last.split('-');
+  const prevFyr=String(+fyr-1), prevLyr=String(+lyr-1);
+  return {
+    curLbl:`${fmon} ${fyr} – ${lmon} ${lyr}`,  preLbl:`${fmon} ${prevFyr} – ${lmon} ${prevLyr}`,
+    curShort:`${fmon}${fyr}–${lmon}${lyr}`,     preShort:`Prev`
+  };
+}
+
+// ══════════════════════════════════════════════════
+// AGGREGATION
+// ══════════════════════════════════════════════════
+// Always monthly — quarterly view removed
+function V(row) {
+  return {v25:row.m25,v26:row.m26,g:row.mGrowth};
+}
+
+function aggRows(key) {
+  const map={};
+  for (const b of getActive()) {
+    for (const row of (b[key]||[])) {
+      if (!map[row.name]) map[row.name]={name:row.name,hs:row.hs,m25:0,m26:0,q25:0,q26:0};
+      const r=map[row.name];
+      r.m25+=row.m25;r.m26+=row.m26;r.q25+=row.q25;r.q26+=row.q26;
+    }
+  }
+  return Object.values(map).map(r=>({...r,
+    mGrowth:r.m25>0?(r.m26-r.m25)/r.m25*100:null,
+    qGrowth:r.q25>0?(r.q26-r.q25)/r.q25*100:null
+  }));
+}
+
+// Always monthly
+function getTotals() {
+  const T={eM:0,iM:0,eM25:0,iM25:0};
+  for (const b of getActive()) {
+    T.eM  +=b.totals.expM||sF(b,'exportComm','m26');
+    T.iM  +=b.totals.impM||sF(b,'importComm','m26');
+    T.eM25+=sF(b,'exportComm','m25');
+    T.iM25+=sF(b,'importComm','m25');
+  }
+  return T;
+}
+
+function sF(b,key,f){return(b[key]||[]).reduce((s,r)=>s+(r[f]||0),0);}
+
+function chapFilter(rows) {
+  if (S.hs!=='hs6'||S.chapter==='ALL') return rows;
+  return rows.filter(r=>r.hs&&r.hs.replace(/\s+/g,'').substring(0,2)===S.chapter);
+}
+
+// ══════════════════════════════════════════════════
+// RENDER ENTRY
+// ══════════════════════════════════════════════════
+function renderAll() {
+  initActivePeriods();
+  document.getElementById('screen').style.display='none';
+  document.getElementById('dash').style.display='block';
+  document.getElementById('ctrlbar').style.display='flex';
+  renderPeriodChips();
+  renderDash();
+}
+
+function renderDash() {
+  const periods=getActive(); if(!periods.length) return;
+  renderKPIs(); renderOverview(); renderCommodities(); renderCountries(); renderGrowth();
+  const hs6=S.hs==='hs6';
+  document.getElementById('chapWrap').style.display=hs6?'block':'none';
+  const d=v=>v?'block':'none';
+  document.getElementById('cntHs6Note').style.display=d(hs6);
+  if (hs6) buildChapFilter();
+}
+
+// ══════════════════════════════════════════════════
+// KPIs
+// ══════════════════════════════════════════════════
+function renderKPIs() {
+  const T=getTotals();
+  const exp=T.eM,imp=T.iM,e25=T.eM25,i25=T.iM25;
+  const bal=exp-imp;
+  const eG=e25>0?(exp-e25)/e25*100:null,iG=i25>0?(imp-i25)/i25*100:null;
+  const f=v=>v>=1000?`$${(v/1000).toFixed(1)}B`:`$${v.toFixed(0)}M`;
+  const bdg=v=>v==null?'—':`<span class="bdg ${v>0?'p':'n'}">${v>0?'+':''}${v.toFixed(1)}%</span>`;
+  const periods=[...activePeriodSet];
+  const lbl = periods.length===1 ? periods[0] : `${periods[0]}–${periods[periods.length-1]}`;
+  const periodsSorted = periods.slice().sort((a,b)=>mnum(a)-mnum(b));
+  const SHOW = 3;
+  const periodsHtml = periodsSorted.length <= SHOW
+    ? `<div class="kpi-periods">${periodsSorted.join(', ')}</div>`
+    : `<div class="kpi-periods">
+        <span id="kpiPeriodShort">${periodsSorted.slice(0,SHOW).join(', ')} <span class="kpi-periods-more" onclick="kpiTogglePeriods()">+${periodsSorted.length-SHOW} more</span></span>
+        <span id="kpiPeriodFull" style="display:none">${periodsSorted.join(', ')} <span class="kpi-periods-more" onclick="kpiTogglePeriods()">show less</span></span>
+      </div>`;
+  document.getElementById('kpiRow').innerHTML=`
+    <div class="kpi e"><div class="kpi-l">${lbl} Exports</div><div class="kpi-v" style="color:var(--exp)">${f(exp)}</div><div class="kpi-s">${bdg(eG)} vs prior year</div></div>
+    <div class="kpi i"><div class="kpi-l">${lbl} Imports</div><div class="kpi-v" style="color:var(--imp)">${f(imp)}</div><div class="kpi-s">${bdg(iG)} vs prior year</div></div>
+    <div class="kpi b"><div class="kpi-l">Trade Balance</div><div class="kpi-v" style="color:${bal<0?'var(--imp)':'var(--exp)'}">${bal<0?'−':''}${f(Math.abs(bal))}</div><div class="kpi-s" style="color:var(--ink-light)">${bal<0?'Deficit':'Surplus'}</div></div>
+    <div class="kpi"><div class="kpi-l">HS Level</div><div class="kpi-v" style="font-size:18px;color:${S.hs==='hs2'?'var(--hs2)':'var(--hs6)'}">${S.hs==='hs2'?'HS-2 Chapter':'HS-6 Item'}</div><div class="kpi-s" style="color:var(--ink-light)">${S.hs==='hs2'?'98 chapters':'Detailed breakdown'}</div></div>
+    <div class="kpi"><div class="kpi-l">Periods</div><div class="kpi-v" style="font-size:20px;color:var(--acc)">${activePeriodSet.size}</div>${periodsHtml}</div>`;
+}
+
+function kpiTogglePeriods() {
+  const s = document.getElementById('kpiPeriodShort');
+  const f = document.getElementById('kpiPeriodFull');
+  if (!s || !f) return;
+  const expanded = s.style.display === 'none';
+  s.style.display = expanded ? '' : 'none';
+  f.style.display = expanded ? 'none' : '';
+}
+
+// ══════════════════════════════════════════════════
+// OVERVIEW
+// ══════════════════════════════════════════════════
+function renderOverview() {
+  const T=getTotals();
+  const exp=T.eM,imp=T.iM,e25=T.eM25,i25=T.iM25;
+  const bal=exp-imp,tot=exp+imp;
+  document.getElementById('ovSub').textContent=[...activePeriodSet].join(' + ')+' — US $ Million';
+
+  setInnerHTML('togBalWrap', ctToggle('cBal'));
+  dc('cBal');
+  CH.cBal=new Chart(document.getElementById('cBal').getContext('2d'),{
+    type:CT.cBal||'bar',
+    data:{labels:['Prior Year','Current Year'],datasets:[
+      {label:'Exports',data:[e25,exp],backgroundColor:['rgba(34,163,102,.25)','rgba(34,163,102,.85)'],borderColor:'rgba(34,163,102,.85)',fill:false,tension:.3,borderRadius:4,borderSkipped:false,pointRadius:5},
+      {label:'Imports',data:[i25,imp],backgroundColor:['rgba(220,38,38,.22)','rgba(220,38,38,.82)'],borderColor:'rgba(220,38,38,.82)',fill:false,tension:.3,borderRadius:4,borderSkipped:false,pointRadius:5}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.dataset.label}: $${c.parsed.y.toFixed(0)}M`}}},
+      scales:{x:{grid:{display:false},ticks:{font:{family:'Inter',size:12}}},y:{grid:{color:'#e1e4ef'},ticks:{callback:v=>`$${(v/1000).toFixed(0)}B`,font:{family:'Inter',size:11}}}}}
+  });
+
+  dc('cDonut');
+  CH.cDonut=new Chart(document.getElementById('cDonut').getContext('2d'),{
+    type:'doughnut',
+    data:{labels:['Exports','Imports'],datasets:[{data:[exp,imp],backgroundColor:['rgba(34,163,102,.85)','rgba(220,38,38,.8)'],borderWidth:0,hoverOffset:4}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'70%',
+      plugins:{legend:{position:'bottom',labels:{font:{family:'Inter',size:12},padding:14}},
+        tooltip:{callbacks:{label:c=>` ${c.label}: $${c.parsed.toFixed(0)}M (${(c.parsed/tot*100).toFixed(1)}%)`}}}}
+  });
+
+  const f=v=>`$${Math.abs(v).toFixed(0)}M`;
+  document.getElementById('bsum').innerHTML=`
+    <div class="bc e"><div class="bl">Exports</div><div class="bv">${f(exp)}</div><div class="bs" style="color:var(--exp)">${(exp/tot*100).toFixed(1)}% of trade</div></div>
+    <div class="bc i"><div class="bl">Imports</div><div class="bv">${f(imp)}</div><div class="bs" style="color:var(--imp)">${(imp/tot*100).toFixed(1)}% of trade</div></div>
+    <div class="bc ${bal<0?'df':'sp'}"><div class="bl">Net Balance</div><div class="bv">${bal<0?'−':'+'}${f(bal)}</div><div class="bs">${bal<0?'Deficit':'Surplus'}</div></div>`;
+
+  const all=S.db[S.hs];
+  const tBal=all.map(b=>{
+    if(!activePeriodSet.has(b.period))return null;
+    const eV=b.totals.expM||sF(b,'exportComm','m26');
+    const iV=b.totals.impM||sF(b,'importComm','m26');
+    return eV-iV;
+  });
+  dc('cTrend');
+  CH.cTrend=new Chart(document.getElementById('cTrend').getContext('2d'),{
+    type:'bar',
+    data:{labels:all.map(b=>b.period),datasets:[{label:'Balance',data:tBal,
+      backgroundColor:tBal.map(v=>v==null?'transparent':v>=0?'rgba(34,163,102,.8)':'rgba(220,38,38,.75)'),
+      borderRadius:4,borderSkipped:false}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` Balance: ${c.parsed.y<0?'−':'+'}$${Math.abs(c.parsed.y).toFixed(0)}M`}}},
+      scales:{x:{grid:{display:false},ticks:{font:{family:'Inter',size:11}}},y:{grid:{color:'#e1e4ef'},ticks:{callback:v=>`$${v.toFixed(0)}M`,font:{family:'Inter',size:10}}}}}
+  });
+
+  // Exports & Imports per-period chart — monthly only
+  const expVals=all.map(b=>{
+    const v=b.totals.expM||sF(b,'exportComm','m26');
+    return activePeriodSet.has(b.period)?v:null;
+  });
+  const impVals=all.map(b=>{
+    const v=b.totals.impM||sF(b,'importComm','m26');
+    return activePeriodSet.has(b.period)?v:null;
+  });
+
+  setInnerHTML('togExpImpTrendWrap', ctToggle('cExpImpTrend'));
+  dc('cExpImpTrend');
+  CH.cExpImpTrend=new Chart(document.getElementById('cExpImpTrend').getContext('2d'),{
+    type:CT.cExpImpTrend||'bar',
+    data:{
+      labels:all.map(b=>b.period),
+      datasets:[
+        {label:'Exports',data:expVals,backgroundColor:'rgba(34,163,102,.78)',borderColor:'rgba(34,163,102,.9)',fill:false,tension:.3,borderRadius:4,borderSkipped:false,pointRadius:4},
+        {label:'Imports',data:impVals,backgroundColor:'rgba(220,38,38,.72)',borderColor:'rgba(220,38,38,.85)',fill:false,tension:.3,borderRadius:4,borderSkipped:false,pointRadius:4}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{labels:{font:{family:'Inter',size:11}}},
+        tooltip:{callbacks:{label:c=>{
+          const v=c.parsed.y;
+          return ` ${c.dataset.label}: ${v>=1000?'$'+(v/1000).toFixed(2)+'B':'$'+v.toFixed(0)+'M'}`;
+        }}}
+      },
+      scales:{
+        x:{grid:{display:false},ticks:{font:{family:'Inter',size:11}}},
+        y:{
+          grid:{color:'#e1e4ef'},
+          ticks:{callback:v=>v>=1000?'$'+(v/1000).toFixed(0)+'B':'$'+v.toFixed(0)+'M',font:{family:'Inter',size:10}}
+        }
+      }
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════
+// CHAPTER FILTER
+// ══════════════════════════════════════════════════
+function buildChapFilter() {
+  const rows=aggRows('exportComm');
+  const chs=[...new Set(rows.filter(r=>r.hs&&r.hs.replace(/\s+/g,'').length>=2).map(r=>r.hs.replace(/\s+/g,'').substring(0,2)))].sort();
+  document.getElementById('chapBar').innerHTML=
+    `<div class="cch ${S.chapter==='ALL'?'on':''}" onclick="setChap('ALL')">All</div>`+
+    chs.map(c=>`<div class="cch ${S.chapter===c?'on':''}" onclick="setChap('${c}')">${c}</div>`).join('');
+}
+function setChap(c){S.chapter=c;buildChapFilter();renderCommodities();renderGrowth();}
+
+// ══════════════════════════════════════════════════
+// COMMODITIES
+// ══════════════════════════════════════════════════
+function renderCommodities() {
+  const n=N.comm;
+  const expAll=chapFilter(aggRows('exportComm')).sort((a,b)=>V(b).v26-V(a).v26);
+  const impAll=chapFilter(aggRows('importComm')).sort((a,b)=>V(b).v26-V(a).v26);
+  const lbl=[...activePeriodSet].join(' + ');
+  document.getElementById('expCSub').textContent=`By value · ${lbl}`;
+  document.getElementById('impCSub').textContent=`By value · ${lbl}`;
+  drawCommTable('tEC',expAll,'export',document.getElementById('srchEC').value);
+  drawCommTable('tIC',impAll,'import',document.getElementById('srchIC').value);
+
+  document.getElementById('topCommTitleE').textContent=`Top ${n} Export Commodities by Value`;
+  document.getElementById('topCommTitleI').textContent=`Top ${n} Import Commodities by Value`;
+
+  const barH=Math.max(340, n*50+80);
+  document.getElementById('cwCommE').style.height=barH+'px';
+  document.getElementById('cwCommI').style.height=barH+'px';
+
+  // Shared tick callback for wrapping x labels
+  function wrapTick(val) {
+    const lbl=this.getLabelForValue(val);
+    const words=lbl.split(' ');
+    const lines=[]; let cur='';
+    words.forEach(w=>{
+      if((cur+' '+w).trim().length>18&&cur){lines.push(cur);cur=w;}
+      else cur=(cur?cur+' ':'')+w;
+    });
+    if(cur) lines.push(cur);
+    return lines;
+  }
+
+  // Export chart
+  setInnerHTML('togTCWrap', ctToggle('cTC'));
+  dc('cTC');
+  CH.cTC=new Chart(document.getElementById('cTC').getContext('2d'),{
+    type:CT.cTC||'bar',
+    data:{
+      labels:expAll.slice(0,n).map(r=>sn(r.name,22)),
+      datasets:[
+        {label:'Current Year', data:expAll.slice(0,n).map(r=>V(r).v26), backgroundColor:'rgba(34,163,102,.85)',borderColor:'rgba(34,163,102,.9)',fill:false,tension:.3,borderRadius:3,borderSkipped:false,pointRadius:4},
+        {label:'Prior Year',   data:expAll.slice(0,n).map(r=>V(r).v25), backgroundColor:'rgba(34,163,102,.22)',borderColor:'rgba(34,163,102,.4)',fill:false,tension:.3,borderRadius:3,borderSkipped:false,pointRadius:4}
+      ]
+    },
+    options:commChartOpts(wrapTick)
+  });
+
+  // Import chart
+  setInnerHTML('togTCIWrap', ctToggle('cTCI'));
+  dc('cTCI');
+  CH.cTCI=new Chart(document.getElementById('cTCI').getContext('2d'),{
+    type:CT.cTCI||'bar',
+    data:{
+      labels:impAll.slice(0,n).map(r=>sn(r.name,22)),
+      datasets:[
+        {label:'Current Year', data:impAll.slice(0,n).map(r=>V(r).v26), backgroundColor:'rgba(220,38,38,.82)',borderColor:'rgba(220,38,38,.9)',fill:false,tension:.3,borderRadius:3,borderSkipped:false,pointRadius:4},
+        {label:'Prior Year',   data:impAll.slice(0,n).map(r=>V(r).v25), backgroundColor:'rgba(220,38,38,.22)',borderColor:'rgba(220,38,38,.4)',fill:false,tension:.3,borderRadius:3,borderSkipped:false,pointRadius:4}
+      ]
+    },
+    options:commChartOpts(wrapTick)
+  });
+}
+
+function commChartOpts(wrapTick) {
+  return {
+    responsive:true,
+    maintainAspectRatio:false,
+    plugins:{
+      legend:{labels:{font:{family:'Inter',size:11}}},
+      tooltip:{callbacks:{label:c=>` ${c.dataset.label}: $${c.parsed.y.toFixed(1)}M`}}
+    },
+    scales:{
+      x:{
+        grid:{display:false},
+        ticks:{font:{family:'Inter',size:9},maxRotation:40,autoSkip:false,callback:wrapTick}
+      },
+      y:{
+        grid:{color:'#e1e4ef'},
+        title:{display:true,text:'US $ Million',font:{family:'Inter',size:11},color:'#7a8499'},
+        ticks:{font:{family:'Inter',size:10},callback:function(val){
+          if(val>=1000) return '$'+(val/1000).toFixed(1)+'B';
+          return '$'+Math.round(val)+'M';
+        }}
+      }
+    }
+  };
+}
+
+function drawCommTable(id,rows,type,srch='') {
+  const hs6=S.hs==='hs6';
+  const filt=rows.filter(r=>r.name.toLowerCase().includes(srch.toLowerCase())).slice(0,N.commTbl);
+  const col=type==='export'?'var(--exp)':'var(--imp)';
+  const {curLbl,preLbl}=getPeriodLabels();
+
+  // Column widths via colgroup — keeps table stable regardless of content
+  // HS2: #(28) | Name(auto) | Value(90) | YoY(76)
+  // HS6: #(28) | HS(72) | Name(auto) | Value(90) | YoY(76)
+  const cg = hs6
+    ? `<colgroup><col style="width:28px"><col style="width:72px"><col><col style="width:96px"><col style="width:80px"></colgroup>`
+    : `<colgroup><col style="width:28px"><col><col style="width:96px"><col style="width:80px"></colgroup>`;
+
+  document.getElementById(id).innerHTML = cg + `
+    <thead><tr>
+      <th>#</th>${hs6?'<th>HS Code</th>':''}
+      <th>Commodity</th>
+      <th class="r">${curLbl} ↓</th>
+      <th class="r">YoY %</th>
+    </tr></thead>
+    <tbody>${filt.map((r,i)=>{
+      const v=V(r),g=v.g;
+      const dispName = hs6 ? shortCommName(r.name, 55) : r.name.split(';')[0].trim();
+      const fullName = r.name;
+      const rowData = encodeURIComponent(JSON.stringify({name:r.name,hs:r.hs,m25:r.m25,m26:r.m26,q25:r.q25,q26:r.q26,mGrowth:r.mGrowth,qGrowth:r.qGrowth}));
+      return `<tr style="cursor:pointer" data-row="${rowData}" data-type="${type}" onclick="openDrawerFromRow(this)">
+        <td style="color:var(--ink-light);font-size:11px">${i+1}</td>
+        ${hs6?`<td><span class="hs-code">${r.hs||''}</span></td>`:''}
+        <td>
+          <div class="nm" title="${fullName.replace(/"/g,'&quot;')}">${dispName}</div>
+          <div class="nm-sub">Prev: $${v.v25.toFixed(1)}M</div>
+        </td>
+        <td class="r" style="font-weight:700;color:${col}">$${v.v26.toFixed(1)}M</td>
+        <td class="r">${g==null?'—':`<span class="bdg ${g>0?'p':'n'}">${g>0?'+':''}${g.toFixed(1)}%</span>`}</td>
+      </tr>`;
+    }).join('')}</tbody>`;
+}
+
+function filterComm(type) {
+  const rows=chapFilter(aggRows(type==='export'?'exportComm':'importComm')).sort((a,b)=>V(b).v26-V(a).v26);
+  drawCommTable(type==='export'?'tEC':'tIC',rows,type,document.getElementById(type==='export'?'srchEC':'srchIC').value);
+}
+
+// ══════════════════════════════════════════════════
+// COUNTRIES
+// ══════════════════════════════════════════════════
+function renderCountries() {
+  lensRenderCharts(); // keep lens in sync with period/view changes
+  const n=N.cnt;
+  const expAll=aggRows('exportCountry').sort((a,b)=>V(b).v26-V(a).v26);
+  const impAll=aggRows('importCountry').sort((a,b)=>V(b).v26-V(a).v26);
+  const lbl=[...activePeriodSet].join(' + ');
+  document.getElementById('expCnSub').textContent=`Top destinations · ${lbl}`;
+  document.getElementById('impCnSub').textContent=`Top sources · ${lbl}`;
+  drawCntTable('tECn',expAll,'export',document.getElementById('srchECn').value);
+  drawCntTable('tICn',impAll,'import',document.getElementById('srchICn').value);
+
+  const cntH=Math.max(320, n*24);
+  const cntTickOpts={font:{family:'Inter',size:10},maxRotation:35,autoSkip:false};
+
+  // Export destinations chart
+  document.getElementById('topCntTitleE').textContent=`Top ${n} Export Destinations by Value`;
+  document.getElementById('cwCntE').style.height=cntH+'px';
+  setInnerHTML('togCntEWrap', ctToggle('cCntE'));
+  dc('cCntE');
+  CH.cCntE=new Chart(document.getElementById('cCntE').getContext('2d'),{
+    type:CT.cCntE||'bar',
+    data:{labels:expAll.slice(0,n).map(r=>r.name),datasets:[
+      {label:'Current Year',data:expAll.slice(0,n).map(r=>V(r).v26),backgroundColor:'rgba(34,163,102,.85)',borderColor:'rgba(34,163,102,.9)',fill:false,tension:.3,borderRadius:3,borderSkipped:false,pointRadius:4},
+      {label:'Prior Year',  data:expAll.slice(0,n).map(r=>V(r).v25),backgroundColor:'rgba(34,163,102,.22)',borderColor:'rgba(34,163,102,.4)',fill:false,tension:.3,borderRadius:3,borderSkipped:false,pointRadius:4}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{font:{family:'Inter',size:11}}},tooltip:{callbacks:{label:c=>` ${c.dataset.label}: $${c.parsed.y.toFixed(1)}M`}}},
+      scales:{x:{grid:{display:false},ticks:cntTickOpts},
+        y:{grid:{color:'#e1e4ef'},title:{display:true,text:'US $ Million',font:{family:'Inter',size:11},color:'#7a8499'},ticks:{callback:v=>v>=1000?'$'+(v/1000).toFixed(1)+'B':'$'+Math.round(v)+'M',font:{family:'Inter',size:10}}}
+      }}
+  });
+
+  // Import sources chart
+  document.getElementById('topCntTitleI').textContent=`Top ${n} Import Sources by Value`;
+  document.getElementById('cwCntI').style.height=cntH+'px';
+  setInnerHTML('togCntIWrap', ctToggle('cCntI'));
+  dc('cCntI');
+  CH.cCntI=new Chart(document.getElementById('cCntI').getContext('2d'),{
+    type:CT.cCntI||'bar',
+    data:{labels:impAll.slice(0,n).map(r=>r.name),datasets:[
+      {label:'Current Year',data:impAll.slice(0,n).map(r=>V(r).v26),backgroundColor:'rgba(220,38,38,.82)',borderColor:'rgba(220,38,38,.9)',fill:false,tension:.3,borderRadius:3,borderSkipped:false,pointRadius:4},
+      {label:'Prior Year',  data:impAll.slice(0,n).map(r=>V(r).v25),backgroundColor:'rgba(220,38,38,.22)',borderColor:'rgba(220,38,38,.4)',fill:false,tension:.3,borderRadius:3,borderSkipped:false,pointRadius:4}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{font:{family:'Inter',size:11}}},tooltip:{callbacks:{label:c=>` ${c.dataset.label}: $${c.parsed.y.toFixed(1)}M`}}},
+      scales:{x:{grid:{display:false},ticks:cntTickOpts},
+        y:{grid:{color:'#e1e4ef'},title:{display:true,text:'US $ Million',font:{family:'Inter',size:11},color:'#7a8499'},ticks:{callback:v=>v>=1000?'$'+(v/1000).toFixed(1)+'B':'$'+Math.round(v)+'M',font:{family:'Inter',size:10}}}
+      }}
+  });
+
+  // Country Gainers / Decliners — N.cntNet controls both source list size AND table row count
+  const ng=N.cntNet;
+  const minV=20;
+  const expGainRows=[...expAll].filter(r=>V(r).v25>minV&&V(r).g!=null).sort((a,b)=>V(b).g-V(a).g).slice(0,ng);
+  const impGainRows=[...impAll].filter(r=>V(r).v25>minV&&V(r).g!=null).sort((a,b)=>V(b).g-V(a).g).slice(0,ng);
+  const expDeclRows=[...expAll].filter(r=>V(r).v25>minV&&V(r).g!=null).sort((a,b)=>V(a).g-V(b).g).slice(0,ng);
+  const impDeclRows=[...impAll].filter(r=>V(r).v25>minV&&V(r).g!=null).sort((a,b)=>V(a).g-V(b).g).slice(0,ng);
+
+  drawGrowthTbl('tCntExpGain',expGainRows,'export',true); drawGrowthChart('cCntExpGain',expGainRows,'rgba(34,163,102,.82)','rgba(220,38,38,.5)',true,'togCntExpGainWrap');
+  drawGrowthTbl('tCntImpGain',impGainRows,'import',true); drawGrowthChart('cCntImpGain',impGainRows,'rgba(220,38,38,.78)','rgba(34,163,102,.5)',true,'togCntImpGainWrap');
+  drawGrowthTbl('tCntExpDecl',expDeclRows,'export',true); drawGrowthChart('cCntExpDecl',expDeclRows,'rgba(34,163,102,.82)','rgba(220,38,38,.78)',true,'togCntExpDeclWrap');
+  drawGrowthTbl('tCntImpDecl',impDeclRows,'import',true); drawGrowthChart('cCntImpDecl',impDeclRows,'rgba(220,38,38,.78)','rgba(34,163,102,.5)',true,'togCntImpDeclWrap');
+
+  // Net export / net import country tables — sorted by net position
+  const expValMap = Object.fromEntries(expAll.map(r=>[r.name,{v26:V(r).v26,v25:V(r).v25,m25:r.m25,m26:r.m26,q25:r.q25,q26:r.q26,mGrowth:r.mGrowth,qGrowth:r.qGrowth}]));
+  const impValMap = Object.fromEntries(impAll.map(r=>[r.name,{v26:V(r).v26,v25:V(r).v25,m25:r.m25,m26:r.m26,q25:r.q25,q26:r.q26,mGrowth:r.mGrowth,qGrowth:r.qGrowth}]));
+  const allCntNames=[...new Set([...expAll.map(r=>r.name),...impAll.map(r=>r.name)])];
+
+  // Surplus: exp > imp, sorted by net export (exp - imp) desc
+  const surplusRows = allCntNames
+    .map(name=>({name, exp:expValMap[name]?.v26||0, imp:impValMap[name]?.v26||0,
+      expV:expValMap[name], impV:impValMap[name]}))
+    .filter(r=>r.exp>r.imp)
+    .sort((a,b)=>(b.exp-b.imp)-(a.exp-a.imp))
+    .slice(0, N.cntNet);
+
+  // Deficit: imp > exp, sorted by net import (imp - exp) desc
+  const deficitRows = allCntNames
+    .map(name=>({name, exp:expValMap[name]?.v26||0, imp:impValMap[name]?.v26||0,
+      expV:expValMap[name], impV:impValMap[name]}))
+    .filter(r=>r.imp>r.exp)
+    .sort((a,b)=>(b.imp-b.exp)-(a.imp-a.exp))
+    .slice(0, N.cntNet);
+
+  drawNetBalanceTable('tCntGainNet', surplusRows, 'surplus');
+  drawNetGroupedChart('cCntGainNet','cwCntGainNet',
+    surplusRows.map(r=>r.name),
+    Object.fromEntries(surplusRows.map(r=>[r.name,{v26:r.exp, v25:expValMap[r.name]?.v25||0}])),
+    Object.fromEntries(surplusRows.map(r=>[r.name,{v26:r.imp, v25:impValMap[r.name]?.v25||0}])),
+    'togCntGainNetWrap');
+
+  drawNetBalanceTable('tCntDeclNet', deficitRows, 'deficit');
+  drawNetGroupedChart('cCntDeclNet','cwCntDeclNet',
+    deficitRows.map(r=>r.name),
+    Object.fromEntries(deficitRows.map(r=>[r.name,{v26:r.exp, v25:expValMap[r.name]?.v25||0}])),
+    Object.fromEntries(deficitRows.map(r=>[r.name,{v26:r.imp, v25:impValMap[r.name]?.v25||0}])),
+    'togCntDeclNetWrap');
+}
+
+function drawCntTable(id,rows,type,srch='') {
+  const filt=rows.filter(r=>r.name.toLowerCase().includes(srch.toLowerCase())).slice(0,N.cntTbl);
+  const col=type==='export'?'var(--exp)':'var(--imp)';
+  const {curLbl,preLbl}=getPeriodLabels();
+  const drawerType=type==='export'?'exportCountry':'importCountry';  // tells drawer to look in country buckets
+  const cg=`<colgroup><col style="width:28px"><col><col style="width:96px"><col style="width:80px"></colgroup>`;
+  document.getElementById(id).innerHTML = cg + `
+    <thead><tr>
+      <th>#</th><th>Country</th>
+      <th class="r">${curLbl} ↓</th>
+      <th class="r">YoY %</th>
+    </tr></thead>
+    <tbody>${filt.map((r,i)=>{const v=V(r),g=v.g;
+      const rowData = encodeURIComponent(JSON.stringify({name:r.name,hs:null,m25:r.m25,m26:r.m26,q25:r.q25,q26:r.q26,mGrowth:r.mGrowth,qGrowth:r.qGrowth}));
+      return`<tr style="cursor:pointer" data-row="${rowData}" data-type="${drawerType}" onclick="openDrawerFromRow(this)">
+      <td style="color:var(--ink-light);font-size:11px">${i+1}</td>
+      <td><div style="font-weight:500">${r.name}</div><div class="nm-sub">Prev: $${v.v25.toFixed(1)}M</div></td>
+      <td class="r" style="font-weight:700;color:${col}">$${v.v26.toFixed(1)}M</td>
+      <td class="r">${g==null?'—':`<span class="bdg ${g>0?'p':'n'}">${g>0?'+':''}${g.toFixed(1)}%</span>`}</td>
+    </tr>`;}).join('')}</tbody>`;
+}
+
+// ══════════════════════════════════════════════════
+// COUNTRY LENS
+// ══════════════════════════════════════════════════
+const LENS_COLORS = [
+  '#1d4ed8','#dc2626','#059669','#d97706','#7c3aed','#0891b2',
+  '#be185d','#65a30d','#9333ea','#ea580c','#0284c7','#c2410c'
+];
+const LENS = { selected:[] };
+
+function lensAllCountries() {
+  const names = new Set();
+  for (const b of S.db[S.hs]) {
+    (b.exportCountry||[]).forEach(r=>names.add(r.name));
+    (b.importCountry||[]).forEach(r=>names.add(r.name));
+  }
+  return [...names].sort();
+}
+
+function lensOnInput() {
+  const raw = document.getElementById('lensSearch').value.trim();
+  const q = raw.toLowerCase();
+  // Normalise: strip spaces and punctuation for fuzzy matching (e.g. "usa" matches "U.S.A.")
+  const qNorm = q.replace(/[\s.\-_,]/g,'');
+  const all = lensAllCountries();
+  const score = (name) => {
+    const nl = name.toLowerCase();
+    const nlNorm = nl.replace(/[\s.\-_,]/g,'');
+    // Exact substring match (highest priority)
+    if (nl.includes(q)) return 3;
+    // Normalised substring (catches "usa" → "u s a", "unitedstates" etc.)
+    if (qNorm && nlNorm.includes(qNorm)) return 2;
+    // Acronym: first letters of each word match the query (e.g. "usa" → "United States of America")
+    const acronym = name.split(/\s+/).map(w=>w[0]||'').join('').toLowerCase();
+    if (qNorm && acronym.startsWith(qNorm)) return 1;
+    return 0;
+  };
+  const matches = (q ? all.map(n=>({n,s:score(n)})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s).map(x=>x.n) : all)
+    .filter(n=>!LENS.selected.includes(n)).slice(0,12);
+  const drop = document.getElementById('lensDrop');
+  if (!matches.length) { drop.style.display='none'; return; }
+  drop.innerHTML = matches.map(n=>`<div class="lens-opt" onmousedown="lensAdd('${n.replace(/'/g,"\\'")}')">${n}</div>`).join('');
+  drop.style.display = 'block';
+}
+
+function lensHideDrop() {
+  const drop = document.getElementById('lensDrop');
+  if (drop) drop.style.display = 'none';
+}
+
+function lensAdd(name) {
+  if (LENS.selected.includes(name)) return;
+  if (LENS.selected.length >= 8) { toast('Max 8 countries'); return; }
+  LENS.selected.push(name);
+  document.getElementById('lensSearch').value = '';
+  lensHideDrop();
+  lensRenderChips();
+  lensRenderCharts();
+}
+
+function lensRemove(name) {
+  LENS.selected = LENS.selected.filter(n=>n!==name);
+  lensRenderChips();
+  lensRenderCharts();
+}
+
+function lensClear() {
+  LENS.selected = [];
+  lensRenderChips();
+  lensRenderCharts();
+}
+
+function lensRenderChips() {
+  const el = document.getElementById('lensChips');
+  if (!LENS.selected.length) {
+    el.innerHTML = `<span class="lens-hint" style="padding:4px 0">No countries selected — search above to add one</span>`;
+    return;
+  }
+  el.innerHTML = LENS.selected.map((name,i) => {
+    const col = LENS_COLORS[i % LENS_COLORS.length];
+    return `<span class="lens-chip" style="background:${col}18;color:${col};border-color:${col}55"
+      onclick="lensRemove('${name.replace(/'/g,"\\'")}')">
+      <span style="width:8px;height:8px;border-radius:50%;background:${col};flex-shrink:0;display:inline-block"></span>
+      ${name}
+      <span class="lens-chip-x">×</span>
+    </span>`;
+  }).join('');
+}
+
+function lensRenderCharts() {
+  const sec = document.getElementById('lensTrendSection');
+  if (!LENS.selected.length) { sec.style.display='none'; dc('cLensExp'); dc('cLensImp'); dc('cLensBal'); return; }
+  sec.style.display = 'block';
+
+  const allBuckets = S.db[S.hs].filter(b=>activePeriodSet.has(b.period)).sort((a,b)=>mnum(a.period)-mnum(b.period));
+  const labels = allBuckets.map(b=>b.period);
+  const sub = `Monthly · US $ Million · ${labels.join(', ')}`;
+  setInnerHTML('lensExpSub', sub);
+  setInnerHTML('lensImpSub', sub);
+  setInnerHTML('lensBalSub', sub);
+
+  const expDatasets=[], impDatasets=[], balDatasets=[];
+  const lgndExp=[], lgndImp=[];
+
+  LENS.selected.forEach((name,i)=>{
+    const col = LENS_COLORS[i % LENS_COLORS.length];
+    const expData = allBuckets.map(b=>{
+      const r=(b.exportCountry||[]).find(x=>x.name===name);
+      return r?r.m26:null;
+    });
+    const impData = allBuckets.map(b=>{
+      const r=(b.importCountry||[]).find(x=>x.name===name);
+      return r?r.m26:null;
+    });
+    const balData = allBuckets.map((_,j)=>{
+      const e=expData[j]??0, im=impData[j]??0;
+      return (expData[j]!=null||impData[j]!=null) ? e-im : null;
+    });
+    const ds = (data,lbl,dash=[])=>({
+      label:name, data, borderColor:col, backgroundColor:col+'22',
+      fill:false, tension:.35, pointRadius:4, pointHoverRadius:6,
+      borderWidth:2, borderDash:dash, spanGaps:true
+    });
+    expDatasets.push(ds(expData,name));
+    impDatasets.push(ds(impData,name));
+    balDatasets.push(ds(balData,name));
+    lgndExp.push(`<div class="li"><div class="lsq" style="background:${col}"></div>${name}</div>`);
+    lgndImp.push(`<div class="li"><div class="lsq" style="background:${col}"></div>${name}</div>`);
+  });
+
+  setInnerHTML('lensExpLgnd', lgndExp.join(''));
+  setInnerHTML('lensImpLgnd', lgndImp.join(''));
+
+  const baseOpts = (yLabel, zeroline=false) => ({
+    responsive:true, maintainAspectRatio:false,
+    interaction:{mode:'index',intersect:false},
+    plugins:{
+      legend:{display:false},
+      tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${c.parsed.y!=null?'$'+Math.abs(c.parsed.y).toFixed(1)+'M':'—'}`}}
+    },
+    scales:{
+      x:{grid:{display:false},ticks:{font:{family:'Inter',size:11}}},
+      y:{grid:{color:'#e1e4ef'},
+        title:{display:true,text:yLabel,font:{family:'Inter',size:11},color:'#7a8499'},
+        ticks:{callback:v=>v>=1000?'$'+(v/1000).toFixed(1)+'B':'$'+Math.round(v)+'M',font:{family:'Inter',size:10}},
+        ...(zeroline?{afterDataLimits:sc=>{sc.min=Math.min(sc.min,0);sc.max=Math.max(sc.max,0);}}:{})
+      }
+    }
+  });
+
+  dc('cLensExp');
+  CH.cLensExp=new Chart(document.getElementById('cLensExp').getContext('2d'),{
+    type:'line', data:{labels,datasets:expDatasets}, options:baseOpts('Exports US $M')
+  });
+  dc('cLensImp');
+  CH.cLensImp=new Chart(document.getElementById('cLensImp').getContext('2d'),{
+    type:'line', data:{labels,datasets:impDatasets}, options:baseOpts('Imports US $M')
+  });
+  dc('cLensBal');
+  CH.cLensBal=new Chart(document.getElementById('cLensBal').getContext('2d'),{
+    type:'line', data:{labels,datasets:balDatasets},
+    options:{...baseOpts('Balance US $M',true),
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:c=>{
+          const v=c.parsed.y;
+          return v==null?` ${c.dataset.label}: —`:` ${c.dataset.label}: ${v>=0?'+':'-'}$${Math.abs(v).toFixed(1)}M ${v>=0?'(surplus)':'(deficit)'}`;
+        }}},
+        annotation:{} // zero line drawn via afterDraw
+      }
+    }
+  });
+
+  // Draw zero reference line on balance chart after render
+  const balChart=CH.cLensBal;
+  const origDraw=balChart.draw.bind(balChart);
+  balChart.draw=function(){
+    origDraw();
+    const {ctx,chartArea,scales}=balChart;
+    if(!chartArea||!scales.y) return;
+    const y0=scales.y.getPixelForValue(0);
+    if(y0<chartArea.top||y0>chartArea.bottom) return;
+    ctx.save();ctx.strokeStyle='rgba(0,0,0,.18)';ctx.lineWidth=1;ctx.setLineDash([4,3]);
+    ctx.beginPath();ctx.moveTo(chartArea.left,y0);ctx.lineTo(chartArea.right,y0);ctx.stroke();
+    ctx.restore();
+  };
+  balChart.draw();
+}
+
+// ══════════════════════════════════════════════════
+// COMMODITY LENS
+// ══════════════════════════════════════════════════
+const COMM_LENS = { selected:[] };
+
+function commLensAllCommodities() {
+  const names = new Set();
+  for (const b of S.db[S.hs]) {
+    (b.exportComm||[]).forEach(r=>names.add(r.name));
+    (b.importComm||[]).forEach(r=>names.add(r.name));
+  }
+  return [...names].sort();
+}
+
+function commLensOnInput() {
+  const raw = document.getElementById('commLensSearch').value.trim();
+  const q = raw.toLowerCase();
+  const qNorm = q.replace(/[\s.\-_,]/g,'');
+  const all = commLensAllCommodities();
+  const score = (name) => {
+    const nl = name.toLowerCase();
+    const nlNorm = nl.replace(/[\s.\-_,]/g,'');
+    if (nl.includes(q)) return 3;
+    if (qNorm && nlNorm.includes(qNorm)) return 2;
+    const acronym = name.split(/\s+/).map(w=>w[0]||'').join('').toLowerCase();
+    if (qNorm && acronym.startsWith(qNorm)) return 1;
+    return 0;
+  };
+  const matches = (q ? all.map(n=>({n,s:score(n)})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s).map(x=>x.n) : all)
+    .filter(n=>!COMM_LENS.selected.includes(n)).slice(0,12);
+  const drop = document.getElementById('commLensDrop');
+  if (!matches.length) { drop.style.display='none'; return; }
+  drop.innerHTML = matches.map(n=>`<div class="lens-opt" onmousedown="commLensAdd('${n.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">${sn(n,55)}</div>`).join('');
+  drop.style.display = 'block';
+}
+
+function commLensHideDrop() {
+  const drop = document.getElementById('commLensDrop');
+  if (drop) drop.style.display = 'none';
+}
+
+function commLensAdd(name) {
+  if (COMM_LENS.selected.includes(name)) return;
+  if (COMM_LENS.selected.length >= 8) { toast('Max 8 commodities'); return; }
+  COMM_LENS.selected.push(name);
+  document.getElementById('commLensSearch').value = '';
+  commLensHideDrop();
+  commLensRenderChips();
+  commLensRenderCharts();
+}
+
+function commLensRemove(name) {
+  COMM_LENS.selected = COMM_LENS.selected.filter(n=>n!==name);
+  commLensRenderChips();
+  commLensRenderCharts();
+}
+
+function commLensClear() {
+  COMM_LENS.selected = [];
+  commLensRenderChips();
+  commLensRenderCharts();
+}
+
+function commLensRenderChips() {
+  const el = document.getElementById('commLensChips');
+  if (!COMM_LENS.selected.length) {
+    el.innerHTML = `<span class="lens-hint" style="padding:4px 0">No commodities selected — search above to add one</span>`;
+    return;
+  }
+  el.innerHTML = COMM_LENS.selected.map((name,i) => {
+    const col = LENS_COLORS[i % LENS_COLORS.length];
+    const safe = name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    return `<span class="lens-chip" style="background:${col}18;color:${col};border-color:${col}55"
+      onclick="commLensRemove('${safe}')">
+      <span style="width:8px;height:8px;border-radius:50%;background:${col};flex-shrink:0;display:inline-block"></span>
+      ${sn(name,30)}
+      <span class="lens-chip-x">×</span>
+    </span>`;
+  }).join('');
+}
+
+function commLensRenderCharts() {
+  const sec = document.getElementById('commLensTrendSection');
+  if (!COMM_LENS.selected.length) {
+    sec.style.display='none';
+    dc('cCommLensExp'); dc('cCommLensImp'); dc('cCommLensBal');
+    return;
+  }
+  sec.style.display = 'block';
+
+  const allBuckets = S.db[S.hs].filter(b=>activePeriodSet.has(b.period)).sort((a,b)=>mnum(a.period)-mnum(b.period));
+  const labels = allBuckets.map(b=>b.period);
+  const sub = `Monthly · US $ Million · ${labels.join(', ')}`;
+  setInnerHTML('commLensExpSub', sub);
+  setInnerHTML('commLensImpSub', sub);
+  setInnerHTML('commLensBalSub', sub);
+
+  const expDs=[], impDs=[], balDs=[], lgndE=[], lgndI=[];
+  COMM_LENS.selected.forEach((name,i)=>{
+    const col = LENS_COLORS[i % LENS_COLORS.length];
+    const expData = allBuckets.map(b=>{
+      const r=(b.exportComm||[]).find(x=>x.name===name);
+      return r?r.m26:null;
+    });
+    const impData = allBuckets.map(b=>{
+      const r=(b.importComm||[]).find(x=>x.name===name);
+      return r?r.m26:null;
+    });
+    const balData = allBuckets.map((_,j)=>
+      (expData[j]!=null||impData[j]!=null)?(expData[j]??0)-(impData[j]??0):null
+    );
+    const ds=(data)=>({label:sn(name,22),data,borderColor:col,backgroundColor:col+'22',
+      fill:false,tension:.35,pointRadius:4,pointHoverRadius:6,borderWidth:2,spanGaps:true});
+    expDs.push(ds(expData)); impDs.push(ds(impData)); balDs.push(ds(balData));
+    lgndE.push(`<div class="li"><div class="lsq" style="background:${col}"></div>${sn(name,24)}</div>`);
+    lgndI.push(`<div class="li"><div class="lsq" style="background:${col}"></div>${sn(name,24)}</div>`);
+  });
+  setInnerHTML('commLensExpLgnd', lgndE.join(''));
+  setInnerHTML('commLensImpLgnd', lgndI.join(''));
+
+  const baseOpts = (yLabel) => ({
+    responsive:true, maintainAspectRatio:false,
+    interaction:{mode:'index',intersect:false},
+    plugins:{
+      legend:{display:false},
+      tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${c.parsed.y!=null?'$'+Math.abs(c.parsed.y).toFixed(1)+'M':'—'}`}}
+    },
+    scales:{
+      x:{grid:{display:false},ticks:{font:{family:'Inter',size:11}}},
+      y:{grid:{color:'#e1e4ef'},
+        title:{display:true,text:yLabel,font:{family:'Inter',size:11},color:'#7a8499'},
+        ticks:{callback:v=>v>=1000?'$'+(v/1000).toFixed(1)+'B':'$'+Math.round(v)+'M',font:{family:'Inter',size:10}}
+      }
+    }
+  });
+
+  dc('cCommLensExp');
+  CH.cCommLensExp=new Chart(document.getElementById('cCommLensExp').getContext('2d'),{type:'line',data:{labels,datasets:expDs},options:baseOpts('Exports US $M')});
+  dc('cCommLensImp');
+  CH.cCommLensImp=new Chart(document.getElementById('cCommLensImp').getContext('2d'),{type:'line',data:{labels,datasets:impDs},options:baseOpts('Imports US $M')});
+
+  // Balance chart with zero line
+  const balOpts = {...baseOpts('Balance US $M'),
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>{
+      const v=c.parsed.y;
+      return v==null?` ${c.dataset.label}: —`:` ${c.dataset.label}: ${v>=0?'+':'-'}$${Math.abs(v).toFixed(1)}M ${v>=0?'(surplus)':'(deficit)'}`;
+    }}}}
+  };
+  dc('cCommLensBal');
+  CH.cCommLensBal=new Chart(document.getElementById('cCommLensBal').getContext('2d'),{type:'line',data:{labels,datasets:balDs},options:balOpts});
+  const bc=CH.cCommLensBal, origDraw=bc.draw.bind(bc);
+  bc.draw=function(){origDraw();const{ctx,chartArea,scales}=bc;if(!chartArea||!scales.y)return;const y0=scales.y.getPixelForValue(0);if(y0<chartArea.top||y0>chartArea.bottom)return;ctx.save();ctx.strokeStyle='rgba(0,0,0,.18)';ctx.lineWidth=1;ctx.setLineDash([4,3]);ctx.beginPath();ctx.moveTo(chartArea.left,y0);ctx.lineTo(chartArea.right,y0);ctx.stroke();ctx.restore();};
+  bc.draw();
+}
+
+function filterCnt(type) {
+  const rows=aggRows(type==='export'?'exportCountry':'importCountry').sort((a,b)=>V(b).v26-V(a).v26);
+  drawCntTable(type==='export'?'tECn':'tICn',rows,type,document.getElementById(type==='export'?'srchECn':'srchICn').value);
+}
+
+// ══════════════════════════════════════════════════
+// GROWTH
+// ══════════════════════════════════════════════════
+function renderGrowth() {
+  commLensRenderCharts(); // keep lens in sync with period/view changes
+  const n=N.growth;
+  const minV=S.hs==='hs6'?0.5:10;
+  const eRows=chapFilter(aggRows('exportComm')).filter(r=>V(r).v25>minV&&V(r).g!=null);
+  const iRows=chapFilter(aggRows('importComm')).filter(r=>V(r).v25>minV&&V(r).g!=null);
+  const cExpRows=aggRows('exportCountry').filter(r=>V(r).v25>20&&V(r).g!=null);
+  const cImpRows=aggRows('importCountry').filter(r=>V(r).v25>20&&V(r).g!=null);
+
+  const eGain=[...eRows].sort((a,b)=>V(b).g-V(a).g).slice(0,n);
+  const iGain=[...iRows].sort((a,b)=>V(b).g-V(a).g).slice(0,n);
+  const eDecl=[...eRows].sort((a,b)=>V(a).g-V(b).g).slice(0,n);
+  const iDecl=[...iRows].sort((a,b)=>V(a).g-V(b).g).slice(0,n);
+  const cExpGrow=[...cExpRows].sort((a,b)=>V(b).g-V(a).g).slice(0,n);
+  const cImpGrow=[...cImpRows].sort((a,b)=>V(b).g-V(a).g).slice(0,n);
+
+  // Individual YoY % tables + charts
+  drawGrowthTbl('tEG',eGain,'export');     drawGrowthChart('cEG',eGain,'rgba(34,163,102,.82)','rgba(220,38,38,.6)',false,'togEGWrap');
+  drawGrowthTbl('tIG',iGain,'import');     drawGrowthChart('cIG',iGain,'rgba(220,38,38,.78)','rgba(34,163,102,.5)',false,'togIGWrap');
+  drawGrowthTbl('tED',eDecl,'export');     drawGrowthChart('cED',eDecl,'rgba(34,163,102,.82)','rgba(220,38,38,.78)',false,'togEDWrap');
+  drawGrowthTbl('tID',iDecl,'import');     drawGrowthChart('cID',iDecl,'rgba(34,163,102,.82)','rgba(220,38,38,.78)',false,'togIDWrap');
+
+  // Net export / net import commodity tables — sorted by net position
+  const expCommMap=Object.fromEntries(chapFilter(aggRows('exportComm')).map(r=>[r.name,r]));
+  const impCommMap=Object.fromEntries(chapFilter(aggRows('importComm')).map(r=>[r.name,r]));
+  const allCommNames=[...new Set([...Object.keys(expCommMap),...Object.keys(impCommMap)])];
+
+  const commSurplusRows=allCommNames
+    .map(name=>({name,exp:expCommMap[name]?V(expCommMap[name]).v26:0,imp:impCommMap[name]?V(impCommMap[name]).v26:0,
+      expV:expCommMap[name],impV:impCommMap[name]}))
+    .filter(r=>r.exp>r.imp)
+    .sort((a,b)=>(b.exp-b.imp)-(a.exp-a.imp))
+    .slice(0,N.growthNet);
+
+  const commDeficitRows=allCommNames
+    .map(name=>({name,exp:expCommMap[name]?V(expCommMap[name]).v26:0,imp:impCommMap[name]?V(impCommMap[name]).v26:0,
+      expV:expCommMap[name],impV:impCommMap[name]}))
+    .filter(r=>r.imp>r.exp)
+    .sort((a,b)=>(b.imp-b.exp)-(a.imp-a.exp))
+    .slice(0,N.growthNet);
+
+  drawNetBalanceCommTable('tGainNet',commSurplusRows,'surplus');
+  drawNetGroupedChart('cGainNet','cwGainNet',
+    commSurplusRows.map(r=>r.name),
+    Object.fromEntries(commSurplusRows.map(r=>[r.name,{v26:r.exp,v25:r.expV?V(r.expV).v25:0}])),
+    Object.fromEntries(commSurplusRows.map(r=>[r.name,{v26:r.imp,v25:r.impV?V(r.impV).v25:0}])),
+    'togGainNetWrap');
+
+  drawNetBalanceCommTable('tDeclNet',commDeficitRows,'deficit');
+  drawNetGroupedChart('cDeclNet','cwDeclNet',
+    commDeficitRows.map(r=>r.name),
+    Object.fromEntries(commDeficitRows.map(r=>[r.name,{v26:r.exp,v25:r.expV?V(r.expV).v25:0}])),
+    Object.fromEntries(commDeficitRows.map(r=>[r.name,{v26:r.imp,v25:r.impV?V(r.impV).v25:0}])),
+    'togDeclNetWrap');
+}
+
+// expMap and impMap are now {name: {v25, v26}} objects
+// toggleWrapId is the DOM id to inject the Bar/Line toggle into
+function drawNetGroupedChart(chartId, wrapId, names, expMap, impMap, toggleWrapId) {
+  if (toggleWrapId) setInnerHTML(toggleWrapId, ctToggle(chartId));
+  const chartType = CT[chartId]||'bar';
+  const sorted=[...names].sort((a,b)=>{
+    const totB=(expMap[b]?.v26||0)+(impMap[b]?.v26||0);
+    const totA=(expMap[a]?.v26||0)+(impMap[a]?.v26||0);
+    return totB-totA;
+  });
+  const labels=sorted.map(n=>sn(n,20));
+  // Cap height: bar charts need ~18px per item, line charts are fixed
+  const H = chartType==='line' ? 300 : Math.min(420, Math.max(220, sorted.length*18));
+  document.getElementById(wrapId).style.height=H+'px';
+  dc(chartId);
+  CH[chartId]=new Chart(document.getElementById(chartId).getContext('2d'),{
+    type:chartType,
+    data:{
+      labels,
+      datasets:[
+        {label:'Export — Current',  data:sorted.map(n=>expMap[n]?.v26??null), backgroundColor:'rgba(34,163,102,.85)', borderColor:'rgba(34,163,102,.9)', fill:false,tension:.3,borderRadius:3,borderSkipped:false,pointRadius:chartType==='line'?4:0},
+        {label:'Export — Prior Yr', data:sorted.map(n=>expMap[n]?.v25??null), backgroundColor:'rgba(34,163,102,.25)', borderColor:'rgba(34,163,102,.45)',fill:false,tension:.3,borderRadius:3,borderSkipped:false,pointRadius:chartType==='line'?3:0},
+        {label:'Import — Current',  data:sorted.map(n=>impMap[n]?.v26??null), backgroundColor:'rgba(220,38,38,.78)',  borderColor:'rgba(220,38,38,.9)', fill:false,tension:.3,borderRadius:3,borderSkipped:false,pointRadius:chartType==='line'?4:0},
+        {label:'Import — Prior Yr', data:sorted.map(n=>impMap[n]?.v25??null), backgroundColor:'rgba(220,38,38,.22)',  borderColor:'rgba(220,38,38,.42)',fill:false,tension:.3,borderRadius:3,borderSkipped:false,pointRadius:chartType==='line'?3:0}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{labels:{font:{family:'Inter',size:11},boxWidth:12}},
+        tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${c.parsed.y!=null?'$'+c.parsed.y.toFixed(1)+'M':'—'}`}}
+      },
+      scales:{
+        x:{grid:{display:false},ticks:{font:{family:'Inter',size:9},maxRotation:35,autoSkip:false,
+          callback:function(val){
+            const l=this.getLabelForValue(val);
+            const w=l.split(' '); if(w.length<=2) return l;
+            const m=Math.ceil(w.length/2);
+            return [w.slice(0,m).join(' '),w.slice(m).join(' ')];
+          }
+        }},
+        y:{grid:{color:'#e1e4ef'},
+          title:{display:true,text:'US $ Million',font:{family:'Inter',size:10},color:'#7a8499'},
+          ticks:{font:{family:'Inter',size:10},callback:v=>v>=1000?'$'+(v/1000).toFixed(1)+'B':'$'+Math.round(v)+'M'}
+        }
+      }
+    }
+  });
+}
+
+// Net balance commodity table: surplus (exp > imp) or deficit (imp > exp)
+// rows = [{name, exp, imp, expV, impV}], type = 'surplus' | 'deficit'
+function drawNetBalanceCommTable(id, rows, type) {
+  const {curLbl}=getPeriodLabels();
+  const hs6=S.hs==='hs6';
+  const isSurplus=type==='surplus';
+  const netLabel=isSurplus?'Net Export (Exp−Imp)':'Net Import (Imp−Exp)';
+  const netColor=isSurplus?'var(--exp)':'var(--imp)';
+  document.getElementById(id).innerHTML = `
+    <thead><tr>
+      <th>#</th>
+      ${hs6?'<th>HS</th>':''}
+      <th>Commodity</th>
+      <th class="r" style="color:var(--exp)">Exports ${curLbl}</th>
+      <th class="r" style="color:var(--imp)">Imports ${curLbl}</th>
+      <th class="r" style="color:${netColor}">${netLabel}</th>
+    </tr></thead>
+    <tbody>${rows.map((r,i)=>{
+      const net=isSurplus?r.exp-r.imp:r.imp-r.exp;
+      const expV=r.expV, impV=r.impV;
+      const hs=expV?.hs||impV?.hs||null;
+      const rowData=encodeURIComponent(JSON.stringify({
+        name:r.name, hs,
+        expM25:expV?.m25||0, expM26:expV?.m26||0, expQ25:expV?.q25||0, expQ26:expV?.q26||0, expMG:expV?.mGrowth||null, expQG:expV?.qGrowth||null,
+        impM25:impV?.m25||0, impM26:impV?.m26||0, impQ25:impV?.q25||0, impQ26:impV?.q26||0, impMG:impV?.mGrowth||null, impQG:impV?.qGrowth||null
+      }));
+      const dispName=hs6?shortCommName(r.name,55):r.name.split(';')[0].trim();
+      return `<tr style="cursor:pointer" data-row="${rowData}" data-type="net" onclick="openDrawerFromRow(this)">
+        <td style="color:var(--ink-light);font-size:11px">${i+1}</td>
+        ${hs6?`<td><span class="hs-code">${hs||''}</span></td>`:''}
+        <td><div class="nm" title="${r.name.replace(/"/g,'&quot;')}">${dispName}</div></td>
+        <td class="r" style="font-weight:600;color:var(--exp)">${r.exp>0?'$'+r.exp.toFixed(1)+'M':'—'}</td>
+        <td class="r" style="font-weight:600;color:var(--imp)">${r.imp>0?'$'+r.imp.toFixed(1)+'M':'—'}</td>
+        <td class="r"><span class="bdg ${isSurplus?'p':'n'}" style="font-size:11px">${isSurplus?'+':'-'}$${net.toFixed(1)}M</span></td>
+      </tr>`;
+    }).join('')}</tbody>`;
+}
+
+// Net balance table: surplus countries (exp > imp) or deficit countries (imp > exp)
+// rows = [{name, exp, imp, expV, impV}], type = 'surplus' | 'deficit'
+function drawNetBalanceTable(id, rows, type) {
+  const {curLbl,preLbl}=getPeriodLabels();
+  const isSurplus = type==='surplus';
+  const netLabel = isSurplus ? 'Net Export (Exp−Imp)' : 'Net Import (Imp−Exp)';
+  const netColor = isSurplus ? 'var(--exp)' : 'var(--imp)';
+  document.getElementById(id).innerHTML = `
+    <thead><tr>
+      <th>#</th>
+      <th>Country</th>
+      <th class="r" style="color:var(--exp)">Exports ${curLbl}</th>
+      <th class="r" style="color:var(--imp)">Imports ${curLbl}</th>
+      <th class="r" style="color:${netColor}">${netLabel}</th>
+    </tr></thead>
+    <tbody>${rows.map((r,i)=>{
+      const net = isSurplus ? r.exp-r.imp : r.imp-r.exp;
+      const expV=r.expV, impV=r.impV;
+      const rowData=encodeURIComponent(JSON.stringify({
+        name:r.name, hs:null,
+        expM25:expV?.m25||0, expM26:expV?.m26||0, expQ25:expV?.q25||0, expQ26:expV?.q26||0, expMG:expV?.mGrowth||null, expQG:expV?.qGrowth||null,
+        impM25:impV?.m25||0, impM26:impV?.m26||0, impQ25:impV?.q25||0, impQ26:impV?.q26||0, impMG:impV?.mGrowth||null, impQG:impV?.qGrowth||null
+      }));
+      const fmt=v=>v>0?'$'+v.toFixed(1)+'M':'—';
+      return `<tr style="cursor:pointer" data-row="${rowData}" data-type="net" onclick="openDrawerFromRow(this)">
+        <td style="color:var(--ink-light);font-size:11px">${i+1}</td>
+        <td style="font-weight:500">${r.name}</td>
+        <td class="r" style="font-weight:600;color:var(--exp)">${fmt(r.exp)}</td>
+        <td class="r" style="font-weight:600;color:var(--imp)">${fmt(r.imp)}</td>
+        <td class="r"><span class="bdg ${isSurplus?'p':'n'}" style="font-size:11px">${isSurplus?'+':'-'}$${net.toFixed(1)}M</span></td>
+      </tr>`;
+    }).join('')}</tbody>`;
+}
+function drawCntDeltaTable(id, rows, type) {
+  const {curLbl,preLbl}=getPeriodLabels();
+  const col=type==='export'?'var(--exp)':'var(--imp)';
+  const cg=`<colgroup><col style="width:26px"><col><col style="width:96px"><col style="width:96px"><col style="width:96px"></colgroup>`;
+  document.getElementById(id).innerHTML = cg + `
+    <thead><tr>
+      <th>#</th><th>Country</th>
+      <th class="r">${preLbl}</th>
+      <th class="r">${curLbl}</th>
+      <th class="r">Δ Change</th>
+    </tr></thead>
+    <tbody>${rows.map((r,i)=>{
+      const v=V(r);
+      const delta=r.delta;
+      const rowData=encodeURIComponent(JSON.stringify({name:r.name,hs:null,m25:r.m25,m26:r.m26,q25:r.q25,q26:r.q26,mGrowth:r.mGrowth,qGrowth:r.qGrowth}));
+      const drawerType=type==='export'?'exportCountry':'importCountry';
+      return `<tr style="cursor:pointer" data-row="${rowData}" data-type="${drawerType}" onclick="openDrawerFromRow(this)">
+        <td style="color:var(--ink-light);font-size:11px">${i+1}</td>
+        <td><div style="font-weight:500">${r.name}</div></td>
+        <td class="r" style="color:var(--ink-light)">$${v.v25.toFixed(1)}M</td>
+        <td class="r" style="font-weight:700;color:${col}">$${v.v26.toFixed(1)}M</td>
+        <td class="r"><span class="bdg ${delta>=0?'p':'n'}">${delta>=0?'+':''}$${Math.abs(delta).toFixed(1)}M</span></td>
+      </tr>`;
+    }).join('')}</tbody>`;
+}
+
+// Country delta bar chart: bars show absolute delta (current - prior)
+function drawCntDeltaChart(chartId, rows, color) {
+  dc(chartId);
+  CH[chartId]=new Chart(document.getElementById(chartId).getContext('2d'),{
+    type:'bar',
+    data:{
+      labels:rows.map(r=>r.name),
+      datasets:[{
+        label:'Δ Change ($M)',
+        data:rows.map(r=>r.delta),
+        backgroundColor:rows.map(r=>r.delta>=0?color:color.replace('.85','.35').replace('.78','.35')),
+        borderRadius:3,borderSkipped:false
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:c=>` Δ ${c.parsed.y>=0?'+':''}$${c.parsed.y.toFixed(1)}M`}}
+      },
+      scales:{
+        x:{grid:{display:false},ticks:{font:{family:'Inter',size:9},maxRotation:35,autoSkip:false,
+          callback:function(val){
+            const l=this.getLabelForValue(val);
+            const w=l.split(' '); if(w.length<=2) return l;
+            const m=Math.ceil(w.length/2);
+            return [w.slice(0,m).join(' '),w.slice(m).join(' ')];
+          }
+        }},
+        y:{grid:{color:'#e1e4ef'},
+          title:{display:true,text:'Change US $ Million',font:{family:'Inter',size:10},color:'#7a8499'},
+          ticks:{font:{family:'Inter',size:10},callback:v=>v>=1000?'$'+(v/1000).toFixed(1)+'B':(v<0?'−$'+Math.abs(Math.round(v))+'M':'$'+Math.round(v)+'M')}
+        }
+      }
+    }
+  });
+}
+
+function drawGrowthTbl(id,rows,type,isCnt=false) {
+  const hs6=S.hs==='hs6', maxG=200;
+  const {curLbl,preLbl}=getPeriodLabels();
+  const col=type==='export'?'var(--exp)':'var(--imp)';
+
+  // colgroup: #(28) | [HS(72) if hs6 & !cnt] | Name(auto) | Current(96) | Prev(88) | YoY(110)
+  let cg;
+  if (hs6 && !isCnt) {
+    cg = `<colgroup><col style="width:28px"><col style="width:72px"><col><col style="width:96px"><col style="width:88px"><col style="width:110px"></colgroup>`;
+  } else {
+    cg = `<colgroup><col style="width:28px"><col><col style="width:96px"><col style="width:88px"><col style="width:110px"></colgroup>`;
+  }
+
+  document.getElementById(id).innerHTML = cg + `
+    <thead><tr>
+      <th>#</th>${hs6&&!isCnt?'<th>HS Code</th>':''}
+      <th>${isCnt?'Country':'Commodity'}</th>
+      <th class="r">${curLbl}</th>
+      <th class="r">Prior Year</th>
+      <th>YoY Growth</th>
+    </tr></thead>
+    <tbody>${rows.map((r,i)=>{
+      const v=V(r),g=v.g,pos=g>=0,bw=Math.min(Math.abs(g||0),maxG)/maxG*100;
+      const dispName = isCnt ? r.name : (hs6 ? shortCommName(r.name,55) : r.name.split(';')[0].split(',')[0].trim());
+      const rowData = encodeURIComponent(JSON.stringify({name:r.name,hs:r.hs,m25:r.m25,m26:r.m26,q25:r.q25,q26:r.q26,mGrowth:r.mGrowth,qGrowth:r.qGrowth}));
+      return `<tr style="cursor:pointer" data-row="${rowData}" data-type="${isCnt?(type==='export'?'exportCountry':'importCountry'):type}" onclick="openDrawerFromRow(this)">
+        <td style="color:var(--ink-light);font-size:11px">${i+1}</td>
+        ${hs6&&!isCnt?`<td><span class="hs-code">${r.hs||''}</span></td>`:''}
+        <td>
+          <div class="nm" title="${r.name.replace(/"/g,'&quot;')}">${dispName}</div>
+        </td>
+        <td class="r" style="font-weight:700;color:${col}">$${v.v26.toFixed(1)}M</td>
+        <td class="r" style="color:var(--ink-light)">$${v.v25.toFixed(1)}M</td>
+        <td>
+          <div class="gb">
+            <div class="gb-bg"><div class="gb-f ${pos?'p':'n'}" style="width:${bw}%"></div></div>
+            <span class="bdg ${pos?'p':'n'}" style="font-size:10px">${g>0?'+':''}${g.toFixed(1)}%</span>
+          </div>
+        </td>
+      </tr>`;
+    }).join('')}</tbody>`;
+}
+
+function drawGrowthChart(id, rows, colPos, colNeg, isCnt, wrapId) {
+  if (wrapId) setInnerHTML(wrapId, ctToggle(id));
+  dc(id);
+  const chartType = CT[id]||'bar';
+  const labels=rows.map(r=>isCnt?r.name:sn(r.name,28));
+  const vals=rows.map(r=>V(r).g);
+  const colors=vals.map(v=>v>=0?colPos:colNeg);
+  const borderColors=vals.map(v=>v>=0?colPos.replace(/[\d.]+\)$/,'1)'):colNeg.replace(/[\d.]+\)$/,'1)'));
+  CH[id]=new Chart(document.getElementById(id).getContext('2d'),{
+    type:chartType,
+    data:{labels,datasets:[{
+      label:'YoY Growth %',data:vals,
+      backgroundColor:chartType==='line'?colPos:colors,
+      borderColor:chartType==='line'?colPos.replace(/[\d.]+\)$/,'1)'):borderColors,
+      fill:false,tension:.3,borderRadius:3,borderSkipped:false,pointRadius:chartType==='line'?4:0
+    }]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:c=>` ${c.parsed.y>0?'+':''}${c.parsed.y.toFixed(1)}%`}}
+      },
+      scales:{
+        x:{
+          grid:{display:false},
+          ticks:{
+            font:{family:'Inter',size:9},
+            maxRotation:0,
+            callback:function(val){
+              const lbl=this.getLabelForValue(val);
+              const words=lbl.split(' ');
+              if(words.length<=3) return lbl;
+              const mid=Math.ceil(words.length/2);
+              return [words.slice(0,mid).join(' '),words.slice(mid).join(' ')];
+            }
+          }
+        },
+        y:{
+          grid:{color:'#e1e4ef'},
+          title:{display:true,text:'YoY %',font:{family:'Inter',size:10},color:'#7a8499'},
+          ticks:{callback:v=>`${v}%`,font:{family:'Inter',size:10}}
+        }
+      }
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════
+// COMPARE
+// ══════════════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════════════
+const TABS=['overview','country','growth','contact'];
+function goTab(name){
+  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('on',TABS[i]===name));
+  document.querySelectorAll('.tp').forEach(el=>el.classList.toggle('on',el.id===`tab-${name}`));
+}
+
+// ══════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════
+function dc(id){if(CH[id]){CH[id].destroy();delete CH[id];}}
+function setInnerHTML(id,html){const el=document.getElementById(id);if(el)el.innerHTML=html;}
+
+// Smart name shortening for HS6 — picks the most meaningful segment
+function shortCommName(name, maxLen) {
+  // HS6 names often look like "BOVINE CATTLE, LIVE, PURE-BRED" — take first clause
+  const clean = name
+    .replace(/\.$/, '')       // strip trailing period
+    .split(';')[0]            // take before first semicolon
+    .split(',')[0]            // take before first comma for very long ones
+    .trim();
+  if (clean.length <= maxLen) return clean;
+  return clean.substring(0, maxLen) + '…';
+}
+
+function sn(s,len=36){
+  const clean=s.split(';')[0].split(',')[0].trim();
+  return clean.length>len?clean.substring(0,len)+'…':clean;
+}
+
+function setScreen(type,title,msg,extra=''){
+  const el=document.getElementById('screen');
+  el.style.display='block';
+  el.className='status-screen'+(type==='loading'?' loading':'');
+  document.getElementById('screenTitle').textContent=title;
+  document.getElementById('screenMsg').textContent=msg;
+  const spin=el.querySelector('.spin');
+  if(spin)spin.style.display=type==='loading'?'block':'none';
+  const ex=el.querySelector('.extra');
+  if(ex)ex.remove();
+  if(extra){const d=document.createElement('div');d.className='extra';d.innerHTML=extra;el.appendChild(d);}
+}
+
+let _tt;
+function toast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.classList.add('on');
+  clearTimeout(_tt);_tt=setTimeout(()=>el.classList.remove('on'),3000);
+}
+
+// ══════════════════════════════════════════════════
+// CALENDAR PICKER
+// ══════════════════════════════════════════════════
+let calPending = new Set();
+let calLastClicked = null;   // for shift-click range
+
+function toggleCal(e) {
+  e.stopPropagation();          // prevent this click from reaching the outside-click handler
+  const drop = document.getElementById('calDrop');
+  const isOpen = drop.style.display !== 'none';
+  if (isOpen) { drop.style.display = 'none'; return; }
+  calPending = new Set(activePeriodSet);
+  calLastClicked = null;
+  buildCalGrid();
+  drop.style.display = 'block';
+}
+
+// Single delegated listener on the grid — set up once
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('calGrid').addEventListener('click', function(e) {
+    const cell = e.target.closest('.cal-cell');
+    if (!cell || cell.classList.contains('no-data')) return;
+    const period = cell.dataset.period;
+    const all = S.db[S.hs].map(b => b.period);
+
+    if (e.shiftKey && calLastClicked && all.includes(calLastClicked)) {
+      // Range select from last clicked to this cell
+      const iA = all.indexOf(calLastClicked), iB = all.indexOf(period);
+      const lo = Math.min(iA,iB), hi = Math.max(iA,iB);
+      // If last clicked was an add, add the range; else remove
+      const mode = calPending.has(calLastClicked) ? 'add' : 'remove';
+      for (let i = lo; i <= hi; i++) {
+        mode === 'add' ? calPending.add(all[i]) : calPending.delete(all[i]);
+      }
+    } else {
+      // Simple toggle
+      calPending.has(period) ? calPending.delete(period) : calPending.add(period);
+      calLastClicked = period;
+    }
+    buildCalGrid();
+  });
+});
+
+function buildCalGrid() {
+  const all = S.db[S.hs].map(b => b.period);
+  const byYear = {};
+  all.forEach(p => {
+    const [mon, yr] = p.split('-');
+    if (!byYear[yr]) byYear[yr] = {};
+    byYear[yr][mon] = p;
+  });
+  const MONS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const years = Object.keys(byYear).sort();
+
+  // Derive actual data year for hint text
+  const allPeriodsSorted = [...all].sort((a,b)=>mnum(b)-mnum(a));
+  const newestPeriod = allPeriodsSorted[0] || '';
+  const [newestMon, newestYr] = newestPeriod.split('-');
+  const priorYr = newestYr ? String(+newestYr-1) : '(prior)';
+  const hintEl = document.querySelector('.cal-hint');
+  if (hintEl) {
+    hintEl.innerHTML = `Select the <strong>current-year periods</strong> you want to analyse (e.g. <strong>${newestYr}</strong> data). Prior-year figures (<strong>${priorYr}</strong>) are read from the same files automatically — you cannot and do not need to select them. Click to toggle · Shift+click for range.`;
+  }
+
+  let html = '';
+  years.forEach(yr => {
+    // Mark the year role: is it the "current" data year or older?
+    const isNewest = yr === newestYr;
+    const yearLabel = isNewest ? `${yr} ← current year data` : yr;
+    html += `<div style="grid-column:1/-1;font-size:10px;font-weight:700;color:${isNewest?'var(--acc)':'var(--ink-light)'};letter-spacing:.5px;text-transform:uppercase;margin-top:4px;margin-bottom:2px">${yearLabel}</div>`;
+    MONS_SHORT.forEach(mon => {
+      const period = byYear[yr]?.[mon];
+      if (period) {
+        const on = calPending.has(period);
+        const isLast = period === calLastClicked;
+        html += `<div class="cal-cell ${on?'on':''} ${isLast?'last-sel':''}" data-period="${period}">${mon}</div>`;
+      } else {
+        html += `<div class="cal-cell no-data">${mon}</div>`;
+      }
+    });
+  });
+
+  document.getElementById('calGrid').innerHTML = html;
+  updateCalCount();
+}
+
+function calSelectAll() {
+  calPending = new Set(S.db[S.hs].map(b => b.period));
+  calLastClicked = null;
+  buildCalGrid();
+}
+function calSelectNone() {
+  const all = S.db[S.hs].map(b => b.period);
+  calPending = new Set([all[all.length-1]]); // keep at least one
+  calLastClicked = null;
+  buildCalGrid();
+}
+function calSelectLast3() {
+  const all = S.db[S.hs].map(b => b.period);
+  calPending = new Set(all.slice(-3));
+  calLastClicked = null;
+  buildCalGrid();
+}
+function calSelectLast6() {
+  const all = S.db[S.hs].map(b => b.period);
+  calPending = new Set(all.slice(-6));
+  calLastClicked = null;
+  buildCalGrid();
+}
+
+function updateCalCount() {
+  const total = S.db[S.hs].length;
+  const sel = calPending.size;
+  document.getElementById('calSelCount').textContent =
+    `${sel} of ${total} period${total!==1?'s':''} selected · Shift+click for range`;
+}
+
+function calApply() {
+  if (calPending.size === 0) { toast('Select at least one period'); return; }
+  activePeriodSet = new Set(calPending);
+  updateCalTriggerLabel();
+  document.getElementById('calDrop').style.display = 'none';
+  renderDash();
+}
+
+function updateCalTriggerLabel() {
+  const all = S.db[S.hs].map(b => b.period);
+  const sel = all.filter(p => activePeriodSet.has(p));
+  // Derive prior year from the newest selected period
+  const newestSel = [...sel].sort((a,b)=>mnum(b)-mnum(a))[0];
+  const priorNote = newestSel ? ` (prior: ${newestSel.split('-')[1]-1})` : '';
+  let label;
+  if (sel.length === all.length) label = `All ${all.length} period(s)${priorNote}`;
+  else if (sel.length === 1) label = `${sel[0]}${priorNote}`;
+  else {
+    const idxs = sel.map(p => all.indexOf(p)).sort((a,b)=>a-b);
+    const isContiguous = idxs.every((v,i) => i===0 || v===idxs[i-1]+1);
+    label = isContiguous ? `${sel[0]} – ${sel[sel.length-1]}${priorNote}` : `${sel.length} periods${priorNote}`;
+  }
+  document.getElementById('calLabel').textContent = label;
+}
+
+// Close dropdown on click outside — clicks inside the drop are stopped by drop onclick
+document.addEventListener('click', function(e) {
+  const drop = document.getElementById('calDrop');
+  if (!drop || drop.style.display === 'none') return;
+  const trigger = document.getElementById('calTrigger');
+  if (!drop.contains(e.target) && !trigger.contains(e.target)) {
+    drop.style.display = 'none';
+  }
+});
+
+function renderPeriodChips() {
+  updateCalTriggerLabel();
+  if (document.getElementById('calDrop').style.display !== 'none') buildCalGrid();
+}
+
+// ══════════════════════════════════════════════════
+// DETAIL DRAWER
+// ══════════════════════════════════════════════════
+function openDrawerFromRow(tr) {
+  const rowJson = decodeURIComponent(tr.dataset.row);
+  const type = tr.dataset.type;
+  openDrawer(rowJson, type);
+}
+
+function openDrawer(rowJson, type) {
+  const r = JSON.parse(rowJson);
+
+  // ── NET mode: row contains both export & import data ──
+  if (type === 'net') {
+
+    const {curLbl, preLbl} = getPeriodLabels();
+    const fv = v => v!=null ? `$${(+v).toFixed(1)}M` : '—';
+    const fg = v => v==null ? '—' : `${v>0?'+':''}${(+v).toFixed(1)}%`;
+    const expCurr = r.expM26;
+    const expPrev = r.expM25;
+    const impCurr = r.impM26;
+    const impPrev = r.impM25;
+    const expG    = r.expMG;
+    const impG    = r.impMG;
+    const totCurr = (expCurr||0)+(impCurr||0);
+    const totPrev = (expPrev||0)+(impPrev||0);
+    const totDelta = totCurr - totPrev;
+    document.getElementById('drawerContent').innerHTML = `
+      <div class="drawer-title">${r.name}</div>
+      ${r.hs ? `<div class="drawer-hs">HS Code: ${r.hs}</div>` : ''}
+      ${drawerLensBtn(r.name, r.hs ? 'commodity' : 'country')}
+      <div class="drawer-section">Export &amp; Import — Monthly comparison</div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px">
+        <thead><tr>
+          <th style="text-align:left;font-size:10px;font-weight:700;color:var(--ink-light);padding:5px 0;border-bottom:2px solid var(--border)">Metric</th>
+          <th style="text-align:right;font-size:10px;font-weight:700;color:var(--ink-light);padding:5px 0;border-bottom:2px solid var(--border)">${preLbl}</th>
+          <th style="text-align:right;font-size:10px;font-weight:700;color:var(--ink-light);padding:5px 0;border-bottom:2px solid var(--border)">${curLbl}</th>
+          <th style="text-align:right;font-size:10px;font-weight:700;color:var(--ink-light);padding:5px 0;border-bottom:2px solid var(--border)">YoY %</th>
+        </tr></thead>
+        <tbody>
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:7px 0;font-weight:500;color:var(--exp)">Export</td>
+            <td style="text-align:right;color:var(--ink-light)">${fv(expPrev)}</td>
+            <td style="text-align:right;font-weight:700;color:var(--exp)">${fv(expCurr)}</td>
+            <td style="text-align:right">${expG!=null?`<span class="bdg ${expG>0?'p':'n'}">${fg(expG)}</span>`:'—'}</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:7px 0;font-weight:500;color:var(--imp)">Import</td>
+            <td style="text-align:right;color:var(--ink-light)">${fv(impPrev)}</td>
+            <td style="text-align:right;font-weight:700;color:var(--imp)">${fv(impCurr)}</td>
+            <td style="text-align:right">${impG!=null?`<span class="bdg ${impG>0?'p':'n'}">${fg(impG)}</span>`:'—'}</td>
+          </tr>
+          <tr>
+            <td style="padding:7px 0;font-weight:600;color:var(--acc)">Total</td>
+            <td style="text-align:right;color:var(--ink-light)">${fv(totPrev)}</td>
+            <td style="text-align:right;font-weight:700;color:var(--acc)">${fv(totCurr)}</td>
+            <td style="text-align:right"><span class="bdg ${totDelta>=0?'p':'n'}">${totDelta>=0?'+':''}${fv(Math.abs(totDelta))}</span></td>
+          </tr>
+        </tbody>
+      </table>`;
+    document.getElementById('detailDrawer').classList.add('open');
+    return;
+  }
+
+  // type is one of: 'export', 'import', 'exportCountry', 'importCountry'
+  const isCountry = type === 'exportCountry' || type === 'importCountry';
+  const isExp = type === 'export' || type === 'exportCountry';
+  const col = isExp ? 'var(--exp)' : 'var(--imp)';
+  const typeLabel = isExp ? 'Export' : 'Import';
+
+  // Map type → correct DB bucket key
+  const dbKey = {
+    'export':          'exportComm',
+    'import':          'importComm',
+    'exportCountry':   'exportCountry',
+    'importCountry':   'importCountry'
+  }[type] || (isExp ? 'exportComm' : 'importComm');
+
+  const allPerBuckets = S.db[S.hs];
+  const periodRows = allPerBuckets.map(b => {
+    const found = (b[dbKey]||[]).find(x => x.name === r.name);
+    return { period: b.period, active: activePeriodSet.has(b.period), found };
+  });
+
+  const {curLbl, preLbl} = getPeriodLabels();
+  const curVal = r.m26;
+  const preVal = r.m25;
+  const growth = r.mGrowth;
+  const delta = curVal - preVal;
+
+  const fv = v => `$${v.toFixed(1)}M`;
+  const fg = v => v==null?'—':`${v>0?'+':''}${v.toFixed(1)}%`;
+
+  document.getElementById('drawerContent').innerHTML = `
+    <div class="drawer-title">${r.name}</div>
+    ${r.hs ? `<div class="drawer-hs">HS Code: ${r.hs}</div>` : ''}
+    ${drawerLensBtn(r.name, isCountry ? 'country' : 'commodity')}
+
+    <div class="drawer-section">Monthly comparison</div>
+    <div class="drow curr">
+      <div><div class="dk">Current Year (${curLbl})</div><div style="font-size:10px;color:var(--ink-light)">${typeLabel} value</div></div>
+      <div class="dv" style="color:${col}">${fv(curVal)}</div>
+    </div>
+    <div class="drow prev">
+      <div><div class="dk">Prior Year (${preLbl})</div><div style="font-size:10px;color:var(--ink-light)">${typeLabel} value</div></div>
+      <div class="dv" style="color:var(--ink-mid)">${fv(preVal)}</div>
+    </div>
+    <div class="drawer-delta">
+      <div>
+        <div style="font-size:10px;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">YoY Change</div>
+        <div style="font-size:11px;color:var(--ink-mid)">${delta>=0?'Growth':'Decline'} of ${fv(Math.abs(delta))}</div>
+      </div>
+      <span class="bdg ${growth>0?'p':'n'}" style="font-size:14px">${fg(growth)}</span>
+    </div>
+
+    ${periodRows.filter(x=>x.found).length > 1 ? `
+    <div class="drawer-section">Per-period breakdown</div>
+    <div class="drawer-period-rows">
+      <div class="dpr header"><div>Period</div><div style="text-align:right">Current</div><div style="text-align:right">Prior Year</div><div style="text-align:right">YoY</div></div>
+      ${periodRows.filter(x=>x.found).map(x=>{
+        const fnd=x.found;
+        const cv=fnd.m26, pv=fnd.m25, g=fnd.mGrowth;
+        return `<div class="dpr" style="${!x.active?'opacity:.45':''}">
+          <div style="font-weight:600">${x.period}${!x.active?' <span style="font-size:9px;color:var(--ink-light)">(off)</span>':''}</div>
+          <div style="text-align:right;font-weight:600;color:${col}">${fv(cv)}</div>
+          <div style="text-align:right;color:var(--ink-light)">${fv(pv)}</div>
+          <div style="text-align:right">${g!=null?`<span class="bdg ${g>0?'p':'n'}" style="font-size:10px">${fg(g)}</span>`:'—'}</div>
+        </div>`;
+      }).join('')}
+    </div>` : ''}
+  `;
+
+  document.getElementById('detailDrawer').classList.add('open');
+}
+
+function drawerLensBtn(name, kind) {
+  // kind = 'country' | 'commodity'
+  const inList = kind==='country' ? LENS.selected.includes(name) : COMM_LENS.selected.includes(name);
+  const label = kind==='country' ? 'Country Lens' : 'Commodity Lens';
+  const safe = name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+  if (inList) {
+    return `<button class="drawer-add-btn added" disabled>✓ Added to ${label}</button>`;
+  }
+  return `<button class="drawer-add-btn" onclick="drawerLensAdd('${safe}','${kind}')">+ Add to ${label}</button>`;
+}
+
+function drawerLensAdd(name, kind) {
+  if (kind==='country') {
+    lensAdd(name);
+    // Navigate to country tab lens
+    goTab('country');
+    setTimeout(()=>document.getElementById('lensChips')?.scrollIntoView({behavior:'smooth',block:'nearest'}),100);
+  } else {
+    commLensAdd(name);
+    goTab('growth');
+    setTimeout(()=>document.getElementById('commLensChips')?.scrollIntoView({behavior:'smooth',block:'nearest'}),100);
+  }
+  // Refresh the button state in drawer
+  const btn = document.querySelector('#drawerContent .drawer-add-btn');
+  if (btn) { btn.className='drawer-add-btn added'; btn.disabled=true; btn.textContent=`✓ Added to ${kind==='country'?'Country Lens':'Commodity Lens'}`; }
+}
+
+function closeDrawer() {
+  document.getElementById('detailDrawer').classList.remove('open');
+}
+
+// Close drawer on Escape
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeDrawer(); });
+
+boot();
+</script>
+</body>
+</html>
